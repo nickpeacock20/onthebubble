@@ -1,0 +1,11 @@
+{
+  "name": "onthebubble",
+  "version": "1.0.0",
+  "description": "On The Bubble — Playoff Tracker",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/update",
+      "schedule": "*/5 23,0,1,2,3,4,5,6 * * *"
+    },
+    {
+      "path": "/api/update",
+      "schedule": "*/5 22,23,0,1,2,3,4,5,6 * * 6,0"
+    },
+    {
+      "path": "/api/montecarlo",
+      "schedule": "0 7 * * *"
+    }
+  ]
+}

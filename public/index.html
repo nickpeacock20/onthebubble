@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On The Bubble</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090d;--bg2:#0c0f15;--bg3:#11151d;--card:#141923;
+  --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.12);
+  --text:#e4ecf7;--text2:#c8d8e8;--text3:#8aa4bc;
+  --green:#00e676;--gdim:rgba(0,230,118,.08);
+  --red:#ff4444;--rdim:rgba(255,68,68,.08);
+  --amber:#ffb300;--adim:rgba(255,179,0,.08);
+  --blue:#38b2ff;--bdim:rgba(56,178,255,.08);
+  --purple:#a78bfa;--pdim:rgba(167,139,250,.1);
+  --accent:#00e5ff;--acdim:rgba(0,229,255,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;gap:12px}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+.logo span{color:var(--text3);font-weight:400;font-size:11px;margin-left:6px;letter-spacing:.12em}
+/* LEAGUE TABS */
+.ltabs{display:flex;gap:2px}
+.ltab{padding:5px 14px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid transparent;border-radius:5px;cursor:pointer;background:none;color:var(--text3);transition:all .15s;white-space:nowrap}
+.ltab:hover{color:var(--text2);border-color:var(--border2)}
+.ltab.active{background:var(--acdim);border-color:rgba(0,229,255,.25);color:var(--accent)}
+.ltab.soon{opacity:.35;cursor:not-allowed;pointer-events:none}
+/* TEAM SELECTOR */
+.selbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:12px}
+.sellbl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);white-space:nowrap}
+.tsel{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;padding:6px 12px;cursor:pointer;flex:1;max-width:280px}
+.tsel:focus{outline:none;border-color:var(--accent)}
+.livepill{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);white-space:nowrap}
+.livdot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.8s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* MAIN LAYOUT */
+.wrap{max-width:1380px;margin:0 auto;padding:18px 20px}
+.grid{display:grid;grid-template-columns:1fr 324px;gap:16px}
+.lcol,.rcol{display:flex;flex-direction:column;gap:14px}
+@media(max-width:1060px){.grid{grid-template-columns:1fr}}
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.chdr{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ctitle{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
+.csub{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text2)}
+.csub{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text2)}
+/* HERO */
+.hero{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.hero-l{display:flex;align-items:center;gap:12px}
+.tball{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:900;border:2px solid;flex-shrink:0;letter-spacing:.04em}
+.tname{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;line-height:1}
+.tmeta{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap}
+.seedbadge{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px}
+.streakbadge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px}
+.hero-r{text-align:right}
+.rec{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;line-height:1}
+.recmeta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-top:3px}
+/* STATS ROW */
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border)}
+.s3{padding:12px 14px;text-align:center;border-right:1px solid var(--border)}
+.s3:last-child{border-right:none}
+.s3v{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;line-height:1}
+.s3l{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.1em;color:var(--text2);margin-top:3px;text-transform:uppercase}
+/* PROBABILITY BARS */
+.probs{padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.prow{display:flex;flex-direction:column;gap:5px}
+.prow+.prow{padding-top:12px;border-top:1px solid var(--border)}
+.plbl{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
+.psub{font-size:11.5px;color:var(--text)}
+.pnum-row{display:flex;align-items:baseline;justify-content:space-between}
+.pnum{font-family:'Barlow Condensed',sans-serif;font-size:44px;font-weight:900;line-height:1}
+.ptrack{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.pfill{height:100%;border-radius:4px;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.winlose{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.wl{padding:9px 11px;border-radius:7px;border:1px solid}
+.wll{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;color:var(--text2)}
+.wlv{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900}
+/* CHEER FOR TODAY */
+.cheerlist{padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+.citem{border-radius:8px;border:1px solid;overflow:hidden}
+.citem.yourgame{background:linear-gradient(135deg,var(--acdim),transparent);border-color:rgba(0,229,255,.2)}
+.citem.cheerfor{background:linear-gradient(135deg,var(--gdim),transparent);border-color:rgba(0,230,118,.18)}
+.citem.cheeragainst{background:linear-gradient(135deg,var(--rdim),transparent);border-color:rgba(255,68,68,.18)}
+.citem.watch{background:var(--bg3);border-color:var(--border)}
+.citem.offnight{background:var(--bg3);border-color:var(--border)}
+.ctop{display:flex;align-items:center;gap:9px;padding:9px 12px}
+.cico{font-size:16px;flex-shrink:0}
+.cmatch{flex:1}
+.cmatchup{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.ctime{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3);margin-top:1px}
+.ctag{font-family:'JetBrains Mono',monospace;font-size:8.5px;padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0;align-self:flex-start}
+.yourgame .ctag{background:rgba(0,229,255,.15);color:var(--accent)}
+.cheerfor .ctag{background:rgba(0,230,118,.15);color:var(--green)}
+.cheeragainst .ctag{background:rgba(255,68,68,.15);color:var(--red)}
+.watch .ctag{background:rgba(56,178,255,.12);color:var(--blue)}
+.cbody{padding:0 12px 10px 37px;font-size:12px;color:var(--text);line-height:1.5}
+.cbody strong{color:var(--text);font-weight:600}
+.wpbar{display:flex;align-items:center;gap:6px;margin-top:5px}
+.wpt{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;width:28px;text-transform:uppercase;flex-shrink:0}
+.wptrack{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.wpfill{height:100%;border-radius:3px}
+.wppct{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text);width:32px;text-align:right;flex-shrink:0}
+.wpvs{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text2);flex-shrink:0}
+/* BRACKET */
+.bracket{padding:14px}
+.bconf{margin-bottom:16px}
+.bconf:last-child{margin-bottom:0}
+.bconflbl{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.bmatches{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bmatch{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.bmatch.youin{border-color:var(--accent)}
+.bmatch.tbd{opacity:.65}
+.bteam{display:flex;align-items:center;gap:7px;padding:8px 10px;border-bottom:1px solid var(--border)}
+.bteam:last-child{border-bottom:none}
+.bteam.highlight{background:var(--acdim)}
+.bseed{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);width:14px;text-align:center;flex-shrink:0}
+.bname{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;flex:1}
+.brec{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--text3)}
+/* PLAY-IN */
+.piwrap{padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+.pigame{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.pigame.hl{border-color:var(--accent)}
+.pigamelbl{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.pigamelbl-left{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase}
+.pigamelbl-right{font-size:11px;color:var(--text2)}
+.piteam{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--border)}
+.piteam:last-child{border-bottom:none}
+.piteam.you{background:var(--acdim)}
+.piseed{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);width:16px;text-align:center}
+.piname{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;flex:1}
+.piform{font-family:'JetBrains Mono',monospace;font-size:9px;margin-right:5px}
+.pipct{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900}
+.paths{padding:10px;border-top:1px solid var(--border)}
+.pathlbl{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+.path{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:6px;background:var(--bg2);border:1px solid var(--border);margin-bottom:5px}
+.path:last-child{margin-bottom:0}
+.pathpct{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;min-width:44px;flex-shrink:0}
+.pathdesc{font-size:11.5px;color:var(--text2);line-height:1.5}
+.pathdesc strong{color:var(--text)}
+/* STANDINGS */
+.race{padding:9px 11px;display:flex;flex-direction:column;gap:4px}
+.rrow{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3)}
+.rrow.you{border-color:var(--accent);background:var(--acdim)}
+.rrow.pi{border-color:rgba(255,179,0,.2);background:rgba(255,179,0,.04)}
+.rrow.out{opacity:.45}
+.rrank{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:var(--text3);width:18px;text-align:center;flex-shrink:0}
+.you .rrank{color:var(--accent)}
+.rball{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:900;border:1.5px solid;flex-shrink:0}
+.rinfo{flex:1;min-width:0}
+.rname{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rstats{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2)}
+.rwins{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;text-align:right;flex-shrink:0}
+.rgap{font-family:'JetBrains Mono',monospace;font-size:9px;text-align:right;flex-shrink:0;min-width:32px}
+.divline{height:1px;margin:3px 9px;position:relative}
+.autoline{background:linear-gradient(90deg,var(--green),transparent)}
+.autoline::after{content:'AUTO';font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--green);position:absolute;right:0;top:-8px;letter-spacing:.08em}
+.piline{background:linear-gradient(90deg,var(--amber),transparent)}
+.piline::after{content:'PLAY-IN';font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--amber);position:absolute;right:0;top:-8px;letter-spacing:.08em}
+.wcline{background:linear-gradient(90deg,var(--amber),transparent)}
+.wcline::after{content:'WILD CARD';font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--amber);position:absolute;right:0;top:-8px;letter-spacing:.08em}
+/* STORYLINE */
+.story{padding:14px 16px}
+.storyurg{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:5px}
+.storyh{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;line-height:1.1;margin-bottom:3px}
+.storysub{font-size:11.5px;color:var(--text2);margin-bottom:9px}
+.storybody{font-size:12.5px;color:var(--text2);line-height:1.7}
+.storybody strong{color:var(--text);font-weight:600}
+/* NUMBERS */
+.nums{padding:7px 16px}
+.nrow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.nrow:last-child{border-bottom:none}
+.nlbl{font-size:12.5px;color:var(--text)}
+.nval{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900}
+/* SOURCE */
+.src{font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--text3);padding:7px 16px;border-top:1px solid var(--border);letter-spacing:.04em}
+/* EMPTY / PLACEHOLDER */
+.empty{text-align:center;padding:70px 24px}
+.eico{font-size:44px;margin-bottom:12px}
+.etitle{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+.esub{font-size:14px;color:var(--text2);line-height:1.6;max-width:460px;margin:0 auto}
+.coming{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:60px 40px;text-align:center;margin:20px}
+.coming-ico{font-size:52px;margin-bottom:14px}
+.coming-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;color:var(--text)}
+.coming-sub{font-size:14px;color:var(--text2);line-height:1.6;max-width:400px;margin:0 auto 14px}
+.coming-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 14px;border-radius:4px;background:var(--adim);border:1px solid rgba(255,179,0,.2);color:var(--amber);letter-spacing:.1em}
+/* UTILS */
+.gg{color:var(--green)}.rr{color:var(--red)}.aa{color:var(--amber)}.bb{color:var(--blue)}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">ON THE BUBBLE<span>PLAYOFF TRACKER</span></div>
+  <nav class="ltabs">
+    <button class="ltab active" onclick="switchLeague('nba')">NBA</button>
+    <button class="ltab" onclick="switchLeague('nhl')">NHL</button>
+    <button class="ltab" onclick="switchLeague('wnba')">WNBA</button>
+    <button class="ltab" onclick="switchLeague('mlb')">MLB</button>
+    <button class="ltab" onclick="switchLeague('nfl')">NFL</button>
+  </nav>
+  <div class="livepill"><div class="livdot"></div>LIVE · MAR 29, 2026</div>
+</header>
+
+<div class="selbar">
+  <span class="sellbl">Your Team</span>
+  <select class="tsel" id="tsel" onchange="pick(this.value)">
+    <option value="">— Select a team —</option>
+  </select>
+</div>
+
+<div class="wrap" id="app">
+  <div class="empty">
+    <div class="eico">🏆</div>
+    <div class="etitle">Select Your Team</div>
+    <div class="esub">Choose any NBA, NHL, or WNBA team to see their full playoff picture — who to cheer for tonight, odds, bracket, and the storyline of their season.</div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// LIVE DATA LOADER
+// Fetches from /api/data on page load
+// Falls back to hardcoded data if API is unavailable
+// Monte Carlo odds override formula-based odds when available
+// ============================================================
+
+// Will be populated by fetchLiveData()
+let MC_ODDS = { nba: null, nhl: null };
+let DATA_UPDATED_AT = null;
+
+async function fetchLiveData() {
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error);
+
+    // Inject live standings
+    NBA.east  = json.nba.east;
+    NBA.west  = json.nba.west;
+    NBA.today = json.nba.today;
+    NHL.east  = json.nhl.east;
+    NHL.west  = json.nhl.west;
+    NHL.today = json.nhl.today;
+
+    // Store Monte Carlo odds
+    if (json.odds?.nba) MC_ODDS.nba = json.odds.nba;
+    if (json.odds?.nhl) MC_ODDS.nhl = json.odds.nhl;
+
+    DATA_UPDATED_AT = json.updatedAt;
+
+    // Update live pill with real timestamp
+    const d = new Date(json.updatedAt);
+    const label = d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit',
+      timeZone: 'America/New_York'
+    });
+    const pill = document.querySelector('.livepill');
+    if (pill) pill.innerHTML = `<div class="livdot"></div>LIVE · ${label.toUpperCase()} ET`;
+
+    console.log('[live] Data loaded:', json.updatedAt);
+
+  } catch (err) {
+    console.warn('[live] API unavailable, using fallback data:', err.message);
+    // Fallback data stays as-is (hardcoded below)
+  }
+
+  // Re-render selected team if one is already picked
+  const sel = document.getElementById('tsel');
+  if (sel?.value) {
+    buildSel();
+    pick(sel.value);
+  } else {
+    buildSel();
+    setTimeout(() => { sel.value = 'MIA'; pick('MIA'); }, 150);
+  }
+}
+
+// ============================================================
+// FALLBACK HARDCODED DATA — Mar 29 2026
+// Replaced nightly by /api/update + /api/montecarlo
+// ============================================================
+
+// ── NBA ──────────────────────────────────────────────────────
+const NBA = {
+  // [name, abbr, w, l, rem, diff, l10w, streak, color, elim, clinched, l10str, home, road]
+  // Live data from stats.nba.com/stats/leaguestandingsv3 — Mar 29 2026
+  east: [
+    ['Detroit Pistons',       'DET',54,20,8, +8.0, 8,'W2','#C8102E',false,'auto','8-2', '28-9','25-11'],
+    ['Boston Celtics',        'BOS',49,24,9, +7.2, 7,'W2','#007A33',false,false, '7-3', '26-11','23-13'],
+    ['New York Knicks',       'NYK',48,26,8, +6.5, 7,'L1','#006BB6',false,false, '7-3', '27-9','20-17'],
+    ['Cleveland Cavaliers',   'CLE',46,28,8, +4.2, 7,'W1','#860038',false,false, '7-3', '24-14','22-14'],
+    ['Toronto Raptors',       'TOR',41,32,9, +1.7, 5,'W1','#CE1141',false,false, '5-5', '20-16','21-16'],
+    ['Atlanta Hawks',         'ATL',42,33,7, +1.8, 8,'W1','#E03A3E',false,false, '8-2', '22-16','20-17'],
+    ['Philadelphia 76ers',    'PHI',41,33,8, -0.3, 7,'W2','#006BB6',false,false, '7-3', '21-17','20-16'],
+    ['Orlando Magic',         'ORL',39,34,9, +0.9, 4,'W1','#0077C0',false,false, '4-6', '22-14','16-18'],
+    ['Miami Heat',            'MIA',39,35,8, +2.6, 4,'L1','#98002E',false,false, '4-6', '23-14','16-21'],
+    ['Charlotte Hornets',     'CHA',39,35,8, +4.6, 7,'L1','#00788C',false,false, '7-3', '19-18','20-17'],
+    ['Milwaukee Bucks',       'MIL',29,44,9, -6.3, 2,'L3','#00471B',true, false, '2-8', '16-20','13-24'],
+    ['Chicago Bulls',         'CHI',29,45,8, -4.6, 3,'L3','#CE1141',true, false, '3-7', '18-20','11-25'],
+    ['Washington Wizards',    'WAS',17,56,9,-11.0, 1,'L1','#4A90D9',true, false, '1-9', '11-26','6-30'],
+    ['Brooklyn Nets',         'BKN',17,57,8, -9.5, 0,'L10','#444444',true,false, '0-10','9-26','8-31'],
+    ['Indiana Pacers',        'IND',16,58,8, -8.7, 1,'L2','#FDBB30',true, false, '1-9', '10-27','6-31'],
+  ],
+  west: [
+    ['Oklahoma City Thunder',  'OKC',58,16,8,+11.1, 9,'W1','#007AC1',false,'auto','9-1', '30-6','28-9'],
+    ['San Antonio Spurs',      'SAS',56,18,8, +8.1, 9,'W8','#C4CED4',false,'auto','9-1', '28-7','27-11'],
+    ['Los Angeles Lakers',     'LAL',48,26,8, +1.7, 9,'W2','#552583',false,false, '9-1', '24-12','24-14'],
+    ['Denver Nuggets',         'DEN',47,28,7, +4.4, 8,'W5','#FEC524',false,false, '8-2', '23-13','24-15'],
+    ['Minnesota Timberwolves', 'MIN',45,29,8, +3.5, 5,'L1','#78BE20',false,false, '5-5', '25-14','20-15'],
+    ['Houston Rockets',        'HOU',44,29,9, +3.9, 5,'W1','#CE1141',false,false, '5-5', '25-10','19-19'],
+    ['Phoenix Suns',           'PHX',41,33,8, +1.5, 4,'W1','#E56020',false,false, '4-6', '24-15','17-18'],
+    ['LA Clippers',            'LAC',38,36,8, +1.3, 6,'W4','#C8102E',false,false, '6-4', '21-15','17-21'],
+    ['Portland Trail Blazers', 'POR',37,38,7, -1.3, 6,'L1','#E03A3E',false,false, '6-4', '20-17','17-21'],
+    ['Golden State Warriors',  'GSW',36,38,8, +0.3, 4,'W3','#1D428A',false,false, '4-6', '21-15','15-23'],
+    ['Memphis Grizzlies',      'MEM',25,49,8, -4.0, 2,'W1','#5D76A9',true, false, '2-8', '13-23','11-25'],
+    ['New Orleans Pelicans',   'NOP',25,50,7, -4.1, 5,'L4','#B4975A',true, false, '5-5', '16-22','9-28'],
+    ['Dallas Mavericks',       'DAL',24,50,8, -5.1, 3,'W1','#0053BC',true, false, '3-7', '14-23','10-26'],
+    ['Utah Jazz',              'UTA',21,54,7, -8.0, 1,'L5','#F9A01B',true, false, '1-9', '13-25','8-29'],
+    ['Sacramento Kings',       'SAC',19,56,7,-10.3, 4,'L3','#5A2D81',true, false, '4-6', '13-25','6-31'],
+  ],
+  today: [
+    {h:'MIL',a:'LAC',hw:40,aw:60,t:'3:30 PM'},
+    {h:'IND',a:'MIA',hw:15,aw:85,t:'5:00 PM'},
+    {h:'BKN',a:'SAC',hw:25,aw:75,t:'6:00 PM'},
+    {h:'CHA',a:'BOS',hw:30,aw:70,t:'6:00 PM'},
+    {h:'TOR',a:'ORL',hw:55,aw:45,t:'6:00 PM'},
+    {h:'POR',a:'WAS',hw:75,aw:25,t:'6:00 PM'},
+    {h:'NOP',a:'HOU',hw:25,aw:75,t:'7:00 PM'},
+    {h:'OKC',a:'NYK',hw:70,aw:30,t:'7:30 PM'},
+    {h:'DEN',a:'GSW',hw:65,aw:35,t:'10:00 PM'},
+  ]
+};
+
+const NHL = {
+  // [name, abbr, pts, w, l, otl, rem, streak, color, elim, clinched, confRank, divRank, div, l10str]
+  // Live data from api-web.nhle.com/v1/standings/now — Mar 29 2026
+  east: [
+    ['Carolina Hurricanes',  'CAR', 98,46,20, 6,10,'W1','#CC0000',false,false,     1,1,'Metropolitan','6-4-0'],
+    ['Tampa Bay Lightning',  'TBL', 96,45,21, 6,10,'W1','#0099CC',false,false,     2,1,'Atlantic',    '6-2-2'],
+    ['Buffalo Sabres',       'BUF', 98,45,21, 8, 8,'W1','#00B2A9',false,false,     3,2,'Atlantic',    '6-2-2'],
+    ['Montreal Canadiens',   'MTL', 92,41,21,10,10,'W4','#AF1E2D',false,false,     4,3,'Atlantic',    '7-3-0'],
+    ['New York Islanders',   'NYI', 89,42,27, 5, 8,'W2','#00539B',false,false,     5,2,'Metropolitan','6-4-0'],
+    ['Boston Bruins',        'BOS', 90,41,24, 8, 9,'W2','#FFB81C',false,false,     6,4,'Atlantic',    '6-2-2'],
+    ['Pittsburgh Penguins',  'PIT', 88,36,21,16, 9,'L1','#FCB514',false,false,     7,3,'Metropolitan','4-4-2'],
+    ['Columbus Blue Jackets','CBJ', 87,38,24,11, 9,'L2','#CE1126',false,false,     8,4,'Metropolitan','6-3-1'],
+    ['Ottawa Senators',      'OTT', 86,38,25,10, 9,'L1','#C52032',false,false,     9,5,'Atlantic',    '6-3-1'],
+    ['Detroit Red Wings',    'DET', 86,39,26, 8, 9,'L1','#CE1126',false,false,    10,6,'Atlantic',    '4-5-1'],
+    ['Philadelphia Flyers',  'PHI', 84,36,24,12,10,'W2','#F74902',false,false,    11,5,'Metropolitan','7-2-1'],
+    ['Washington Capitals',  'WSH', 83,37,28, 9, 8,'W2','#C8102E',false,false,    12,6,'Metropolitan','6-2-2'],
+    ['New Jersey Devils',    'NJD', 76,37,33, 2,10,'L1','#CE1126',false,false,    13,7,'Metropolitan','6-4-0'],
+    ['Toronto Maple Leafs',  'TOR', 75,31,30,13, 8,'L1','#003E7E',false,false,    14,7,'Atlantic',    '4-4-2'],
+    ['Florida Panthers',     'FLA', 73,35,35, 3, 9,'L3','#C8102E',false,false,    15,8,'Atlantic',    '4-4-2'],
+    ['New York Rangers',     'NYR', 69,30,35, 9, 8,'W2','#0038A8',true, false,    16,8,'Metropolitan','4-5-1'],
+  ],
+  west: [
+    ['Colorado Avalanche',   'COL',106,48,14,10,10,'L1','#6F263D',false,'div',     1,1,'Central','5-4-1'],
+    ['Dallas Stars',         'DAL', 99,44,18,11, 9,'W1','#006847',false,'playoff', 2,2,'Central','5-4-1'],
+    ['Minnesota Wild',       'MIN', 94,41,21,12, 8,'L1','#154734',false,false,     3,3,'Central','4-5-1'],
+    ['Anaheim Ducks',        'ANA', 86,41,28, 4, 9,'L1','#FC4C02',false,false,     4,1,'Pacific','6-3-1'],
+    ['Edmonton Oilers',      'EDM', 83,37,28, 9, 8,'W3','#FF4C00',false,false,     5,2,'Pacific','6-3-1'],
+    ['Utah Mammoth',         'UTA', 82,38,30, 6, 8,'W1','#71AFE5',false,false,     6,4,'Central','4-5-1'],
+    ['Vegas Golden Knights', 'VGK', 80,32,26,16, 8,'L1','#B4975A',false,false,     7,3,'Pacific','3-5-2'],
+    ['Nashville Predators',  'NSH', 77,34,30, 9, 9,'L2','#FFB81C',false,false,     8,5,'Central','6-3-1'],
+    ['Los Angeles Kings',    'LAK', 76,29,26,18, 9,'L1','#A2AAAD',false,false,     9,4,'Pacific','3-4-3'],
+    ['Seattle Kraken',       'SEA', 75,32,29,11,10,'L1','#99D9D9',false,false,    10,5,'Pacific','3-5-2'],
+    ['Winnipeg Jets',        'WPG', 74,31,30,12, 9,'W1','#55B7E4',false,false,    11,6,'Central','5-3-2'],
+    ['San Jose Sharks',      'SJS', 73,33,31, 7,11,'W1','#006D75',false,false,    12,6,'Pacific','3-6-1'],
+    ['St. Louis Blues',      'STL', 73,31,30,11,10,'W4','#0038A8',false,false,    13,7,'Central','7-1-2'],
+    ['Calgary Flames',       'CGY', 70,31,34, 8, 9,'W1','#C8102E',false,false,    14,7,'Pacific','6-3-1'],
+    ['Chicago Blackhawks',   'CHI', 67,27,33,13, 9,'L2','#CF0A2C',false,false,    15,8,'Central','4-4-2'],
+    ['Vancouver Canucks',    'VAN', 50,21,43, 8,10,'L5','#008852',true, false,    16,8,'Pacific','2-7-1'],
+  ],
+  today: [
+    {h:'TBL',a:'NSH',hw:55,aw:45,t:'5:00 PM'},
+    {h:'CAR',a:'MTL',hw:70,aw:30,t:'5:00 PM'},
+    {h:'CBJ',a:'BOS',hw:35,aw:65,t:'5:00 PM'},
+    {h:'NJD',a:'CHI',hw:75,aw:25,t:'7:00 PM'},
+    {h:'PHI',a:'DAL',hw:40,aw:60,t:'7:00 PM'},
+  ]
+};
+
+
+// ── WNBA ─────────────────────────────────────────────────────
+// Season complete — from standings API
+const WNBA = {
+  east: [
+    ['Atlanta Dream',      'ATL',30,14,'#E31837','22-17','21-17'],
+    ['New York Liberty',   'NYL',27,17,'#6ECEB2'],
+    ['Indiana Fever',      'IND',24,20,'#C8102E','11-27','7-32'],
+    ['Washington Mystics', 'WAS',16,28,'#0C2340','11-27','7-30'],
+    ['Connecticut Sun',    'CON',11,33,'#E35205'],
+    ['Chicago Sky',        'CHI',10,34,'#418FDE','20-21','12-24'],
+  ],
+  west: [
+    ['Minnesota Lynx',         'MIN',34,10,'#266092','26-14','21-18'],
+    ['Las Vegas Aces',         'LVA',30,14,'#101820'],
+    ['Phoenix Mercury',        'PHX',27,17,'#CB6015','24-16','19-18'],
+    ['Golden State Valkyries', 'GSV',23,21,'#FFC72C'],
+    ['Seattle Storm',          'SEA',23,21,'#2C5235'],
+    ['Los Angeles Sparks',     'LAS',21,23,'#702F8A'],
+    ['Dallas Wings',           'DAL',10,34,'#C4D600','15-24','11-27'],
+  ],
+  today: []
+};
+
+// ============================================================
+// PLAYOFF ODDS — formula-based, honest
+// Hard elimination: 0% if max wins < cutoff, always
+// Note: backend Monte Carlo simulation replaces these nightly
+// when deployed (see backend guide)
+// ============================================================
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
+
+function nbaOdds(team, rank, conf) {
+  // Use Monte Carlo odds if available
+  if (MC_ODDS.nba?.[team[1]]) return MC_ODDS.nba[team[1]];
+
+  const [,, w, l, rem,,,,, elim, clinched] = team;
+  const cutoff  = conf[9][2];
+  const cutoff6 = conf[5][2];
+  // Hard eliminated
+  if(elim || w+rem < cutoff) return {mp:0,auto:0,pi:0,sp:0};
+  // Clinched auto playoff spot — 100% everything, win or lose doesn't matter
+  if(clinched === 'auto') return {mp:100,auto:100,pi:0,sp:0};
+  // Clinched play-in spot — 100% to make play-in, fighting for seeding
+  if(clinched === 'pi') {
+    const gap6 = w - cutoff6;
+    const auto_ = clamp(80 + gap6*5, 40, 97);
+    return {mp:100,auto:Math.round(auto_),pi:Math.round(100-auto_),sp:0};
+  }
+  const gap10 = w - cutoff;
+  const gap6  = w - cutoff6;
+  let mp, auto_, pi_, sp_;
+  if(rank<=6) {
+    auto_ = clamp(80 + gap6*5, 40, 97);
+    pi_   = clamp(20 - gap6*5, 2, 55);
+    mp    = clamp(auto_ + pi_*0.4, auto_, 99);
+    sp_   = 0;
+  } else if(rank<=10) {
+    auto_ = clamp(15 + gap10*8, 1, 45);
+    pi_   = clamp(80 - Math.abs(gap10)*5, 30, 97);
+    const piBase = {7:62,8:52,9:36,10:28}[rank]||40;
+    sp_   = clamp(piBase + gap10*3, 5, 80);
+    mp    = clamp(auto_ + sp_*0.85, 1, 90);
+  } else {
+    const deficit = cutoff - w;
+    if(w+rem < cutoff) return {mp:0,auto:0,pi:0,sp:0};
+    mp    = clamp(25 - deficit*7, 1, 35);
+    auto_ = clamp(5  - deficit*3, 0, 15);
+    pi_   = clamp(30 - deficit*7, 2, 40);
+    sp_   = 0;
+  }
+  return {mp:Math.round(mp), auto:Math.round(auto_), pi:Math.round(pi_), sp:Math.round(sp_)};
+}
+
+function nhlOdds(team, rank) {
+  // Use Monte Carlo odds if available
+  if (MC_ODDS.nhl?.[team[1]]) return MC_ODDS.nhl[team[1]];
+
+  // [0]name,[1]abbr,[2]pts,[3]w,[4]l,[5]otl,[6]rem,[7]streak,[8]color,[9]elim,[10]clinched,[11]confRank,[12]divRank,[13]div
+  const pts = team[2], w = team[3], l = team[4], otl = team[5], rem = team[6];
+  const elim = team[9], clinched = team[10], confRank = team[11];
+  if(elim) return {mp:0,div:0,wc:0};
+  if(clinched==='div') return {mp:100,div:100,wc:0};
+  if(clinched==='playoff') return {mp:100,div:50,wc:50};
+  const maxPts = pts + rem*2;
+  const wcCutoff = 94; // approx wild card cutoff
+  if(maxPts < wcCutoff - 8) return {mp:0,div:0,wc:0};
+  const above = pts - wcCutoff;
+  let mp, div_, wc_;
+  if(confRank <= 3) { // division top 3 — in on division
+    mp   = clamp(80 + above*1.5, 45, 98);
+    div_ = clamp(75 + above*2, 30, 98);
+    wc_  = 0;
+  } else if(confRank <= 8) { // wild card position
+    mp   = clamp(60 + above*3, 15, 95);
+    div_ = clamp(20 + above*2, 2, 55);
+    wc_  = clamp(55 + above*3, 10, 90);
+  } else { // outside
+    mp   = clamp(30 + above*4, 2, 65);
+    div_ = clamp(5  + above*2, 0, 25);
+    wc_  = clamp(25 + above*4, 2, 60);
+  }
+  return {mp:Math.round(mp), div:Math.round(div_), wc:Math.round(wc_)};
+}
+
+function wnbaOdds(team, rank, conf) {
+  const [,,w,l] = team;
+  const cutoff4 = conf[3][2];
+  const cutoff5 = conf[4]?.[2]||0;
+  const rem = 44-w-l;
+  if(rank<=4) {
+    const cushion = w-cutoff5;
+    const base = clamp(70+cushion*9, 30, 97);
+    return {mp:base};
+  }
+  const deficit = cutoff4-w;
+  if(w+rem < cutoff4) return {mp:0};
+  return {mp:clamp(35-deficit*9, 1, 50)};
+}
+
+// ============================================================
+// WHO TO CHEER FOR ENGINE
+// Determines rivals above/below, finds their games tonight
+// ============================================================
+function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
+  const items = [];
+  const myIdx = rank - 1;
+  const myW   = conf[myIdx][2];  // wins (NBA/WNBA) or pts (NHL)
+  const myRem = league==='nhl' ? conf[myIdx][6] : (conf[myIdx][4] || (82 - conf[myIdx][2] - conf[myIdx][3]));
+  const playinCutoff = league==='nba' ? conf[9][2] : 0;
+
+  // ── STEP 1: My own game first, always ──────────────────────
+  const myGame = todayGames.find(g => g.h===teamAbbr || g.a===teamAbbr);
+  if(myGame) {
+    const myWP = myGame.h===teamAbbr ? myGame.hw : myGame.aw;
+    items.push({
+      type:'yourgame', ico:'🏀',
+      matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
+      tag:'YOUR GAME',
+      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.`,
+      hw:myGame.hw, aw:myGame.aw, home:myGame.h, away:myGame.a, cheerFor:null, cheerAgainst:null
+    });
+  } else {
+    items.push({
+      type:'watch', ico:'💤',
+      matchup:'OFF TONIGHT', time:'No game', tag:'OFF NIGHT',
+      body:`No game tonight. A loss by any team in the standings above you is worth exactly as much as a win.`,
+      hw:50, aw:50, home:'', away:'', cheerFor:null, cheerAgainst:null
+    });
+  }
+
+  // ── STEP 2: Every other relevant team in the conference ─────
+  // Logic: we want EVERY relevant team to LOSE.
+  // Root for whoever is playing them. Period.
+  // Relevant = not eliminated, mathematically can still affect the race.
+  // Sort by closest gap = most urgent first.
+  // If two rivals share a game, show it once for the more urgent one.
+
+  const bucket = [];   // one entry per relevant team with a game tonight
+  const shownGames = new Set();
+
+  conf.forEach(t => {
+    if(t[1] === teamAbbr) return;
+
+    // Elimination checks
+    const elimIdx  = league==='nhl' ? 11 : 9;
+    if(t[elimIdx]) return;
+
+    // NBA: skip teams that can't reach play-in or can't affect us
+    if(league==='nba') {
+      const tMax = t[2] + (t[4] || (82-t[2]-t[3]));
+      if(tMax < playinCutoff) return;          // can't reach play-in
+    }
+
+    const gap    = myW - t[2];   // negative = they're ahead of us
+    const absGap = Math.abs(gap);
+
+    // Teams so far ahead we can never catch = irrelevant for chasing
+    // Teams so far behind they can never catch us = irrelevant for defending
+    // But only filter if truly impossible (more than remaining games)
+    const tRem = league==='nhl' ? t[6] : (t[4] || (82-t[2]-t[3]));
+    if(gap > 0 && gap > tRem) return;   // we're ahead by more than they have left
+    if(gap < 0 && absGap > myRem) return; // they're ahead by more than we have left
+    // Also skip teams with an insurmountable gap (more than 6 games this late)
+    if(absGap > 6) return;
+
+    // Find their game tonight — not involving us
+    const g = todayGames.find(g2 =>
+      (g2.h===t[1] || g2.a===t[1]) &&
+      g2.h !== teamAbbr && g2.a !== teamAbbr
+    );
+    if(!g) return;
+
+    bucket.push({ t, gap, absGap, g });
+  });
+
+  // Sort by urgency: smallest gap first
+  bucket.sort((a,b) => a.absGap - b.absGap);
+
+  // Build items, deduplicating games
+  bucket.forEach(({ t, gap, absGap, g }) => {
+    const rv      = t[1];
+    const gameKey = `${g.h}-${g.a}`;
+
+    // If this game is already shown, skip (the more urgent rival already claimed it)
+    if(shownGames.has(gameKey)) return;
+    shownGames.add(gameKey);
+
+    // opp = whoever is NOT the team we want to lose
+    // We always want `rv` to lose, so we root for the other team
+    const opp   = g.h===rv ? g.a  : g.h;
+    const oppWP = g.h===rv ? g.aw : g.hw;
+    const units = absGap===1 ? 'win' : (league==='nhl' ? 'pts' : 'wins');
+
+    if(gap <= 0) {
+      // rv is AHEAD of us (or tied) — we want them to LOSE, root for opp
+      const desc = gap===0
+        ? `tied with you — tiebreakers decide seeding`
+        : `${absGap} ${units} ahead of you`;
+      items.push({
+        type:'cheerfor', ico:'🎯',
+        matchup:`${g.a} @ ${g.h}`, time:g.t,
+        tag:`CHEER FOR ${opp}`,
+        body:`<strong>${rv}</strong> is ${desc}. <strong class="gg">Root for ${opp} tonight.</strong> They have a <strong>${oppWP.toFixed(0)}%</strong> chance.${gap<0?' A '+rv+' loss + your win = a 2-game swing.':''}`,
+        hw:g.hw, aw:g.aw, home:g.h, away:g.a, cheerFor:opp, cheerAgainst:rv
+      });
+    } else {
+      // rv is BEHIND us — we want them to LOSE to protect our lead, root for opp
+      items.push({
+        type:'cheeragainst', ico:'🛡️',
+        matchup:`${g.a} @ ${g.h}`, time:g.t,
+        tag:`PROTECT YOUR SPOT`,
+        body:`<strong>${rv}</strong> is ${absGap} ${units} behind you and still in range. <strong class="gg">Root for ${opp}</strong> to keep them there. They have a <strong>${oppWP.toFixed(0)}%</strong> chance.`,
+        hw:g.hw, aw:g.aw, home:g.h, away:g.a, cheerFor:opp, cheerAgainst:rv
+      });
+    }
+  });
+
+  return items.slice(0, 5);
+}
+
+// ============================================================
+// STORY ENGINE — generated from real data, no guessing
+// ============================================================
+function getStory(team, rank, conf, odds, league) {
+  const name = team[0];
+  // Safely extract streak — always at index 7 for NBA/NHL, WNBA has no streak
+  const streak = (typeof team[7] === 'string' && team[7].match(/^[WL]\d+$/)) ? team[7] : '';
+  const w   = league==='nhl' ? team[3] : team[2];
+  const l   = league==='nhl' ? team[4] : team[3];
+  const rem = league==='nhl' ? team[6] : (league==='wnba' ? 44-team[2]-team[3] : team[4]);
+  const l10w = league==='nba' ? (team[6]||0) : 0;
+  const elim     = team[9] || false;
+  const clinched = team[10] || false;
+  const streakN = parseInt(streak.replace(/[WL]/,''))||1;
+  const hot = streak.startsWith('W')&&streakN>=3;
+  const cold = streak.startsWith('L')&&streakN>=3;
+  
+  if(league==='nba') {
+    const cutoff = conf[9][2];
+    const maxW = w+rem;
+    if(elim || maxW<cutoff) {
+      return {urg:'dim',h:'Season Over',sub:'Mathematically eliminated',
+        b:`<strong>${name}</strong> are mathematically eliminated. Max possible wins: <strong>${maxW}</strong>. The play-in requires <strong>${cutoff}</strong> wins. The remaining ${rem} games are about development and next year.`};
+    }
+    if(clinched && rank<=2) return {urg:'green',h:'Elite Territory',sub:`#${rank} seed — home court throughout`,
+      b:`<strong class="gg">${name}</strong> are one of the elite teams in the conference at #${rank}. Home court throughout the playoffs. The mission now: stay healthy heading into April.`};
+    if(clinched && rank<=6) {
+      const gap = w-conf[5][2];
+      return {urg:'green',h:'Playoff Bound',sub:`#${rank} — ${gap} win${gap!==1?'s':''} clear of play-in`,
+        b:`<strong class="gg">${name}</strong> have clinched a guaranteed playoff spot at #${rank}.${hot?` The <strong class="gg">${streakN}-game win streak</strong> has this team peaking.`:''} Focus: seeding and first-round matchup.`};
+    }
+    if(rank===7) return {urg:'amber',h:'One Win Away',sub:'#7 seed — best play-in path',
+      b:`<strong>${name}</strong> hold the #7 seed — <strong>the best play-in position</strong>. Win once against #8 and they're in the playoffs outright. Overall: <strong class="aa">${odds.mp}%</strong> to make it.${hot?` The <strong class="gg">${streakN}-game win streak</strong> is perfect momentum.`:''}`};
+    if(rank===8) return {urg:'amber',h:'Two Paths In',sub:'#8 seed — upset or survive',
+      b:`<strong>${name}</strong> are the #8 seed. Path 1: upset the #7 and steal their spot. Path 2: lose, then win Game 3 for the 8-seed. Overall: <strong class="aa">${odds.mp}%</strong> to make the playoffs.${cold?` <strong class="rr">The ${streakN}-game skid is concerning.</strong>`:''}`};
+    if(rank===9) return {urg:'red',h:'Must Win Twice',sub:'#9 seed — hardest play-in path',
+      b:`<strong class="rr">${name} must win two consecutive games</strong> to reach the playoffs. Beat #10, then beat the G1 loser. Overall: <strong class="aa">${odds.mp}%</strong>. Climbing to #7 or #8 changes everything.`};
+    if(rank===10) return {urg:'red',h:'On The Bubble',sub:'#10 seed — must win twice',
+      b:`<strong class="rr">${name} must win two consecutive play-in games</strong> to reach the playoffs. <strong class="aa">${odds.mp}%</strong> chance. ${hot?`The <strong class="gg">${streakN}-game win streak</strong> is this team's best asset.`:cold?`<strong class="rr">The ${streakN}-game losing skid is a real problem.</strong>`:''}`};
+    // Outside
+    const deficit = cutoff-w;
+    return {urg:'red',h:'Chasing the Bubble',sub:`${deficit} win${deficit!==1?'s':''} outside the play-in`,
+      b:`<strong>${name}</strong> are ${deficit} win${deficit!==1?'s':''} behind the play-in cutoff with ${rem} games left. ${w+rem>=cutoff?`They need to win almost every game AND get help from above. <strong class="aa">${odds.mp}%</strong> chance.`:`<strong class="rr">Mathematically eliminated</strong> — max ${w+rem} wins, need ${cutoff}.`}`};
+  }
+  
+  if(league==='nhl') {
+    // [0]name,[1]abbr,[2]pts,[3]w,[4]l,[5]otl,[6]rem,[7]streak,[8]color,[9]elim,[10]clinched,[11]confRank,[12]divRank,[13]div
+    const pts = team[2], rem = team[6], elim_ = team[9], clinched_ = team[10], confRank = team[11], div = team[13];
+    const divRank = team[12];
+    const wcCutoff = conf[7]?.[2] || 72;
+    const ptsBack = wcCutoff - pts;
+    if(elim_) return {urg:'dim',h:'Season Over',sub:'Mathematically eliminated',
+      b:`<strong>${name}</strong> have been eliminated from playoff contention.`};
+    if(clinched_==='div') return {urg:'green',h:'Division Champions',sub:`${div} Division — Clinched`,
+      b:`<strong class="gg">${name}</strong> have clinched the ${div} Division at ${pts} points with ${rem} games left.${hot?` On a <strong class="gg">${streakN}-game win streak</strong>.`:''} Focus: home ice seeding.`};
+    if(clinched_==='playoff') return {urg:'green',h:'Playoff Bound',sub:`Conf #${rank} — Clinched`,
+      b:`<strong class="gg">${name}</strong> have clinched a playoff spot with ${pts} points and ${rem} games left.${hot?` The <strong class="gg">${streakN}-game win streak</strong> has this team peaking.`:''}`};
+    if(confRank<=3) return {urg:'green',h:'Division Leader',sub:`${div} #${divRank} · Conf #${rank}`,
+      b:`<strong>${name}</strong> sit in a division top-3 spot at <strong>${pts} points</strong>. They control their own destiny.${hot?` The <strong class="gg">${streakN}-game win streak</strong> is building momentum.`:cold?` <strong class="rr">The ${streakN}-game skid is a concern — protect this position.</strong>`:''}`};
+    if(confRank<=8) return {urg:'amber',h:'Wild Card Race',sub:`Conf #${rank} — ${pts} pts · In playoff position`,
+      b:`<strong>${name}</strong> are in wild card position at ${pts} points.${ptsBack<=4?` Only <strong>${Math.abs(ptsBack)} pts</strong> separate them from the bubble — this race is tight.`:''}${cold?` <strong class="rr">The ${streakN}-game losing streak is a serious threat to this position.</strong>`:hot?` A <strong class="gg">${streakN}-game win streak</strong> has them moving in the right direction.`:''}`};
+    return {urg:'red',h:'Chasing the Wild Card',sub:`Conf #${rank} · ${Math.abs(ptsBack)} pts back`,
+      b:`<strong>${name}</strong> are outside the playoff picture at ${pts} points with ${rem} games left. They need to win and get help ahead of them.${cold?` <strong class="rr">The ${streakN}-game skid makes this an uphill battle.</strong>`:''}`};
+  }
+
+  if(league==='wnba') {
+    const [,,w,l] = team;
+    const cutoff = conf[3][2];
+    if(rank<=4) {
+      const cushion = w-(conf[4]?.[2]||0);
+      return {urg:cushion>=4?'green':'amber',h:cushion>=4?'Secure in Playoffs':'Holding On',
+        sub:`#${rank} seed · ${cushion}-win cushion`,
+        b:`<strong>${name}</strong> hold the #${rank} seed with a ${cushion}-win cushion over 5th place.${cushion<=2?` The margin is thin in a 44-game season.`:''}`};
+    }
+    const deficit = cutoff-w;
+    return {urg:'red',h:'Outside the Playoffs',sub:`${deficit} win${deficit!==1?'s':''} back`,
+      b:`<strong>${name}</strong> are ${deficit} win${deficit!==1?'s':''} outside the playoff picture with ${44-w-l} games remaining.`};
+  }
+  
+  return {urg:'dim',h:'—',sub:'',b:''};
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+function renderProbs(odds, team, rank, league, conf) {
+  // NBA:  [0]name,[1]abbr,[2]w,[3]l,[4]rem,[5]diff,[6]l10w,[7]streak,[8]color,[9]elim,[10]clinched
+  // NHL:  [0]name,[1]abbr,[2]pts,[3]w,[4]l,[5]otl,[6]rem,[7]streak,[8]color,[9]elim,[10]clinched,[11]confRank
+  // WNBA: [0]name,[1]abbr,[2]w,[3]l,[4]color
+  const w   = league==='nhl' ? team[3] : team[2];
+  const l   = league==='nhl' ? team[4] : team[3];
+  const rem = league==='nhl' ? team[6] : (league==='wnba' ? 44-team[2]-team[3] : team[4]);
+  const oc = c => c>60?'var(--green)':c>30?'var(--amber)':'var(--red)';
+  let rows = '';
+
+  if(league==='nba') {
+    const cutoff  = conf[9][2];
+    const cutoff6 = conf[5][2];
+    const isElim  = team[9] || w+rem<cutoff;
+    
+    rows += probRow('% to Make the Playoffs',
+      isElim?'Mathematically eliminated':rank<=6?`Auto-qualified — ${w-cutoff6} wins above auto line`:rank<=10?'Must survive play-in tournament':'Chasing play-in line',
+      odds.mp, oc(odds.mp), 'pbar1');
+    
+    if(!isElim) {
+      rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+      rows += probRow('% to Clinch Guaranteed Spot (Top 6)',
+        rank<=6?`Currently #${rank} — defending auto spot`:`${Math.abs(w-cutoff6)} wins ${w>=cutoff6?'above':'back of'} the auto line`,
+        odds.auto, oc(odds.auto), 'pbar2');
+      
+      rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+      rows += probRow('% to Be in Play-In Tournament',
+        rank<=6?'Risk of falling into play-in zone':rank<=10?`Currently the #${rank} seed in play-in`:'Must reach top 10 first',
+        odds.pi, 'var(--amber)', 'pbar3');
+      
+      if(rank>=7 && rank<=10) {
+        rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+        rows += probRow('% to Survive Play-In Tournament',
+          rank===7?'1 win needed — best path':rank===8?'Win G1 or survive G3':'Must win 2 consecutive games',
+          odds.sp, 'var(--purple)', 'pbar4');
+      }
+      // Win/loss impact only for the main bar
+    }
+  } else if(league==='nhl') {
+    // [9]=elim, [10]=clinched, [11]=confRank
+    const nhlElim = team[9];
+    const nhlClinched = team[10];
+    const nhlConfRank = team[11];
+    rows += probRow('% to Make the Playoffs',
+      nhlElim?'Mathematically eliminated':nhlClinched?'Clinched — in the playoffs':nhlConfRank<=8?'Currently in playoff picture':'Chasing wild card',
+      odds.mp, oc(odds.mp), 'pbar1');
+    if(!nhlElim && !nhlClinched) {
+      rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+      rows += probRow('% to Win Division Spot (Top 3 in Division)',
+        nhlConfRank<=3?`Division position — currently #${nhlConfRank} in conf`:'Must climb into top 3 of division',
+        odds.div, oc(odds.div), 'pbar2');
+      rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+      rows += probRow('% to Clinch via Wild Card',
+        nhlConfRank<=3?'In via division — wild card not needed':nhlConfRank<=8?'Currently holding a wild card spot':'Must overtake teams above them',
+        odds.wc, 'var(--amber)', 'pbar3');
+    }
+  } else if(league==='wnba') {
+    const cutoff = conf[3][2];
+    rows += probRow('% to Make the Playoffs',
+      rank<=4?`#${rank} seed — top 4 qualify`:`${cutoff-w} wins back of playoffs`,
+      odds.mp, oc(odds.mp), 'pbar1');
+  }
+
+  return `<div class="probs">${rows}</div>`;
+}
+
+function probRow(lbl, sub, val, color, id) {
+  const winImpact = val===100?100:val===0?0:Math.min(98, val+5);
+  const lossImpact = val===100?100:val===0?0:Math.max(1, val-8);
+  return `<div class="prow">
+    <div class="plbl">${lbl}</div>
+    <div class="psub">${sub}</div>
+    <div class="pnum-row"><div></div><div class="pnum" style="color:${color}">${val}%</div></div>
+    <div class="ptrack"><div class="pfill" id="${id}" style="background:${color};width:0%"></div></div>
+    ${id==='pbar1'?`<div class="winlose">
+      <div class="wl" style="background:var(--gdim);border-color:rgba(0,230,118,.15)">
+        <div class="wll" style="color:var(--green)">If they win tonight</div>
+        <div class="wlv" style="color:var(--green)">${winImpact}%</div>
+      </div>
+      <div class="wl" style="background:var(--rdim);border-color:rgba(255,68,68,.15)">
+        <div class="wll" style="color:var(--red)">If they lose tonight</div>
+        <div class="wlv" style="color:var(--red)">${lossImpact}%</div>
+      </div>
+    </div>`:''}
+  </div>`;
+}
+
+function renderCheer(items) {
+  if(!items.length) return '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">No games today involving rival teams.</div>';
+  return `<div class="cheerlist">${items.map(item => {
+    const hasGame = item.home && item.away;
+    return `<div class="citem ${item.type}">
+      <div class="ctop">
+        <span class="cico">${item.ico}</span>
+        <div class="cmatch">
+          <div class="cmatchup">${hasGame?`${item.away} @ ${item.home}`:item.matchup}</div>
+          <div class="ctime">${item.time}${item.time!=='No game'?' ET':''}</div>
+        </div>
+        <span class="ctag">${item.tag}</span>
+      </div>
+      <div class="cbody">
+        ${item.body}
+        ${hasGame?`<div class="wpbar">
+          <span class="wpt">${item.away}</span>
+          <div class="wptrack"><div class="wpfill" style="width:${item.aw}%;background:${item.cheerFor===item.away?'var(--green)':item.cheerAgainst===item.away?'var(--red)':'var(--text3)'}"></div></div>
+          <span class="wppct">${item.aw.toFixed(0)}%</span>
+          <span class="wpvs">vs</span>
+          <span class="wpt">${item.home}</span>
+          <div class="wptrack"><div class="wpfill" style="width:${item.hw}%;background:${item.cheerFor===item.home?'var(--green)':item.cheerAgainst===item.home?'var(--red)':'var(--text3)'}"></div></div>
+          <span class="wppct">${item.hw.toFixed(0)}%</span>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderBracket(conf, confName, myAbbr, league) {
+  if(league==='nba') {
+    // NBA: 1v8tbd, 2v7tbd, 3v6, 4v5
+    const pairs = [
+      [{s:1,t:conf[0]},{s:'8*',tbd:true}],
+      [{s:2,t:conf[1]},{s:'7*',tbd:true}],
+      [{s:3,t:conf[2]},{s:6,t:conf[5]}],
+      [{s:4,t:conf[3]},{s:5,t:conf[4]}],
+    ];
+    let html = `<div class="bconf">
+      <div class="bconflbl">${confName} — First Round</div>
+      <div class="bmatches">`;
+    pairs.forEach(([top,bot]) => {
+      const youIn = (top.t&&top.t[1]===myAbbr)||(bot.t&&bot.t[1]===myAbbr);
+      html += `<div class="bmatch${youIn?' youin':''}${bot.tbd?' tbd':''}">
+        <div class="bteam${top.t&&top.t[1]===myAbbr?' highlight':''}">
+          <span class="bseed">${top.s}</span>
+          <span class="bname" style="color:${top.t&&top.t[1]===myAbbr?'var(--accent)':top.t?.[8]||'var(--text)'}">${top.t?.[0].split(' ').slice(-1)[0]||'—'}</span>
+          <span class="brec">${top.t?`${top.t[2]}-${top.t[3]}`:''}</span>
+        </div>
+        <div class="bteam${bot.t&&bot.t[1]===myAbbr?' highlight':''}">
+          <span class="bseed">${bot.s}</span>
+          ${bot.tbd
+            ? `<span class="bname" style="color:var(--amber)">Play-In Winner</span><span class="brec" style="color:var(--amber)">TBD</span>`
+            : `<span class="bname" style="color:${bot.t&&bot.t[1]===myAbbr?'var(--accent)':bot.t?.[8]||'var(--text)'}">${bot.t?.[0].split(' ').slice(-1)[0]||'—'}</span><span class="brec">${bot.t?`${bot.t[2]}-${bot.t[3]}`:''}</span>`
+          }
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+    return html;
+  }
+  if(league==='nhl') {
+    // Top 8 in conference make playoffs — sort by confRank (index 11)
+    const inPlayoffs = conf.filter(t => t[11]<=8 && !t[9]).sort((a,b)=>a[11]-b[11]);
+    const pairs = [[0,7],[1,6],[2,5],[3,4]];
+    let html = `<div class="bconf">
+      <div class="bconflbl">${confName} — First Round (if playoffs started today)</div>
+      <div class="bmatches">`;
+    pairs.forEach(([ai,bi]) => {
+      const ta = inPlayoffs[ai], tb = inPlayoffs[bi];
+      if(!ta||!tb) return;
+      const youIn = ta[1]===myAbbr||tb[1]===myAbbr;
+      html += `<div class="bmatch${youIn?' youin':''}">
+        <div class="bteam${ta[1]===myAbbr?' highlight':''}">
+          <span class="bseed">${ai+1}</span>
+          <span class="bname" style="color:${ta[1]===myAbbr?'var(--accent)':ta[8]}">${ta[0].split(' ').slice(-1)[0]}</span>
+          <span class="brec">${ta[2]}pts</span>
+        </div>
+        <div class="bteam${tb[1]===myAbbr?' highlight':''}">
+          <span class="bseed">${bi+1}</span>
+          <span class="bname" style="color:${tb[1]===myAbbr?'var(--accent)':tb[8]}">${tb[0].split(' ').slice(-1)[0]}</span>
+          <span class="brec">${tb[2]}pts</span>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+    return html;
+  }
+  if(league==='wnba') {
+    const e1=WNBA.east[0],e2=WNBA.east[1],e3=WNBA.east[2],e4=WNBA.east[3];
+    const w1=WNBA.west[0],w2=WNBA.west[1],w3=WNBA.west[2],w4=WNBA.west[3];
+    const bracket = [[e1,e4],[e2,e3],[w1,w4],[w2,w3]];
+    const labels = ['East QF','East QF','West QF','West QF'];
+    let html = `<div class="bconf"><div class="bconflbl">WNBA Playoffs — Quarterfinals</div><div class="bmatches">`;
+    bracket.forEach(([ta,tb],i) => {
+      if(!ta||!tb) return;
+      const youIn = ta[1]===myAbbr||tb[1]===myAbbr;
+      html += `<div class="bmatch${youIn?' youin':''}">
+        <div class="bteam${ta[1]===myAbbr?' highlight':''}">
+          <span class="bseed">${['E1','E2','W1','W2'][i]}</span>
+          <span class="bname" style="color:${ta[1]===myAbbr?'var(--accent)':ta[4]}">${ta[0].split(' ').slice(-1)[0]}</span>
+          <span class="brec">${ta[2]}-${ta[3]}</span>
+        </div>
+        <div class="bteam${tb[1]===myAbbr?' highlight':''}">
+          <span class="bseed">${['E4','E3','W4','W3'][i]}</span>
+          <span class="bname" style="color:${tb[1]===myAbbr?'var(--accent)':tb[4]}">${tb[0].split(' ').slice(-1)[0]}</span>
+          <span class="brec">${tb[2]}-${tb[3]}</span>
+        </div>
+      </div>`;
+    });
+    return html+'</div></div>';
+  }
+  return '';
+}
+
+function renderPlayIn(conf, myAbbr) {
+  const s7=conf[6],s8=conf[7],s9=conf[8],s10=conf[9];
+  const myIdx=conf.findIndex(t=>t[1]===myAbbr);
+  const gameRow = (t,seed,survPct) => {
+    const you = t[1]===myAbbr;
+    const c = survPct>50?'var(--green)':survPct>25?'var(--amber)':'var(--red)';
+    const streakColor = t[7]?.startsWith('W')?'var(--green)':'var(--red)';
+    return `<div class="piteam${you?' you':''}">
+      <span class="piseed" style="color:${you?'var(--accent)':'var(--text3)'}">#${seed}</span>
+      <div class="rball" style="border-color:${t[8]};color:${t[8]};width:22px;height:22px;font-size:7px;flex-shrink:0">${t[1]}</div>
+      <span class="piname" style="color:${you?'var(--accent)':'var(--text)'}">${t[0].split(' ').slice(-1)[0]}</span>
+      <span class="piform" style="color:${streakColor}">${t[7]||''}</span>
+      <span class="pipct" style="color:${you?'var(--accent)':c}">${survPct}%</span>
+    </div>`;
+  };
+
+  const o7=nbaOdds(s7,7,conf),o8=nbaOdds(s8,8,conf);
+  const o9=nbaOdds(s9,9,conf),o10=nbaOdds(s10,10,conf);
+
+  let pathHTML='';  // Paths removed — keeping play-in bracket clean
+
+  return `<div class="piwrap">
+    <div class="pigame${[s7[1],s8[1]].includes(myAbbr)?' hl':''}">
+      <div class="pigamelbl">
+        <span class="pigamelbl-left" style="color:var(--green)">Game 1 — Winner = 7-seed</span>
+        <span class="pigamelbl-right">Loser → Game 3</span>
+      </div>
+      ${gameRow(s7,7,o7.sp)}${gameRow(s8,8,o8.sp)}
+    </div>
+    <div class="pigame${[s9[1],s10[1]].includes(myAbbr)?' hl':''}">
+      <div class="pigamelbl">
+        <span class="pigamelbl-left" style="color:var(--amber)">Game 2 — Winner survives</span>
+        <span class="pigamelbl-right">Loser eliminated</span>
+      </div>
+      ${gameRow(s9,9,o9.sp)}${gameRow(s10,10,o10.sp)}
+    </div>
+    <div class="pigame tbd">
+      <div class="pigamelbl">
+        <span class="pigamelbl-left" style="color:var(--red)">Game 3 — Winner = 8-seed</span>
+        <span class="pigamelbl-right">G1 loser vs G2 winner</span>
+      </div>
+      <div class="piteam"><span class="piseed">?</span><span class="piname" style="color:var(--amber)">G1 Loser (${s7[1]} or ${s8[1]})</span></div>
+      <div class="piteam"><span class="piseed">?</span><span class="piname" style="color:var(--amber)">G2 Winner (${s9[1]} or ${s10[1]})</span></div>
+    </div>
+    ${pathHTML}
+  </div>`;
+}
+
+function renderRace(conf, myAbbr, league) {
+  if(league==='nhl') return renderRaceNHL(conf, myAbbr);
+
+  let html = '<div class="race">';
+  let l6=false, l10=false;
+  for(let i=0;i<conf.length;i++) {
+    const t=conf[i],rank=i+1,you=t[1]===myAbbr;
+    const color=t[league==='wnba'?4:8]||'#555';
+    const elim=t[9]||false;
+    const inAuto=league==='nba'?rank<=6:rank<=4;
+    const inPI=league==='nba'&&rank>=7&&rank<=10;
+    if(league==='nba'){
+      if(rank===7&&!l6){html+=`<div class="divline autoline"></div>`;l6=true;}
+      if(rank===11&&!l10){html+=`<div class="divline piline"></div>`;l10=true;}
+    } else if(league==='wnba'&&rank===5&&!l6){html+=`<div class="divline autoline"></div>`;l6=true;}
+    const cutoffV=league==='nba'?conf[9][2]:conf[3][2];
+    const gap=t[2]-cutoffV;
+    const gapColor=gap>0?'var(--green)':gap<0?'var(--red)':'var(--amber)';
+    const sk=t[7]||'';
+    html+=`<div class="rrow${you?' you':inPI?' pi':elim?' out':''}">
+      <div class="rrank" style="color:${inAuto?'var(--green)':inPI?'var(--amber)':elim?'var(--red)':'var(--text2)'}">${rank}</div>
+      <div class="rball" style="border-color:${color};color:${color}">${t[1]}</div>
+      <div class="rinfo">
+        <div class="rname" style="color:${you?'var(--accent)':elim?'var(--text2)':'var(--text)'}">${t[0].split(' ').slice(-1)[0]}</div>
+        <div class="rstats">${t[2]}-${t[3]}${sk?` <span style="color:${sk.startsWith('W')?'var(--green)':'var(--red)'}">${sk}</span>`:''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="rwins" style="color:${you?'var(--accent)':elim?'var(--text2)':'var(--text)'}">${t[2]}W</div>
+        ${elim?`<div class="rgap" style="color:var(--red)">ELIM</div>`:''}
+        ${!elim&&inAuto?`<div class="rgap" style="color:var(--green)">IN</div>`:''}
+        ${!elim&&!inAuto?`<div class="rgap" style="color:${gapColor}">${gap>0?'+'+gap:gap===0?'LINE':''+gap}</div>`:''}
+      </div>
+    </div>`;
+  }
+  return html+'</div>';
+}
+
+function renderRaceNHL(conf, myAbbr) {
+  // Two divisions per conference — show top 3 per division, then wild card section
+  const divNames = [...new Set(conf.map(t=>t[13]))];
+  const top3Abbrs = new Set(
+    divNames.flatMap(div=>conf.filter(t=>t[13]===div).sort((a,b)=>b[2]-a[2]).slice(0,3).map(t=>t[1]))
+  );
+  const wcTeams = conf.filter(t=>!top3Abbrs.has(t[1])).sort((a,b)=>b[2]-a[2]);
+  const wc2pts  = wcTeams[1]?.[2]||0; // wild card #2 cutoff
+
+  let html = '<div class="race" style="padding:6px 10px">';
+
+  divNames.forEach(div => {
+    const divTeams = conf.filter(t=>t[13]===div).sort((a,b)=>b[2]-a[2]);
+    html += `<div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--text3);padding:7px 2px 3px">${div.toUpperCase()}</div>`;
+    divTeams.slice(0,3).forEach((t,di) => {
+      const you=t[1]===myAbbr, color=t[8]||'#555', sk=t[7]||'';
+      html+=`<div class="rrow${you?' you':''}">
+        <div class="rrank" style="color:var(--green)">${di+1}</div>
+        <div class="rball" style="border-color:${color};color:${color}">${t[1]}</div>
+        <div class="rinfo">
+          <div class="rname" style="color:${you?'var(--accent)':'var(--text)'}">${t[0].split(' ').slice(-1)[0]}</div>
+          <div class="rstats">${t[2]}pts · ${t[3]}-${t[4]}${t[5]?'-'+t[5]:''}${sk?` <span style="color:${sk.startsWith('W')?'var(--green)':'var(--red)'}">${sk}</span>`:''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="rwins" style="color:${you?'var(--accent)':'var(--text)'}">${t[2]}pts</div>
+          <div class="rgap" style="color:var(--green)">IN</div>
+        </div>
+      </div>`;
+    });
+  });
+
+  // Wild card divider
+  html += `<div style="height:1px;background:linear-gradient(90deg,var(--amber),transparent);margin:6px 0 2px;position:relative">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--amber);position:absolute;right:0;top:-8px;letter-spacing:.08em">WILD CARD</span>
+  </div>`;
+
+  wcTeams.forEach((t,wi) => {
+    const you=t[1]===myAbbr, color=t[8]||'#555', elim=t[9]||false;
+    const inWC=wi<2, sk=t[7]||'';
+    const gapVsLine = t[2] - wc2pts;
+    const gapColor  = inWC?'var(--green)':gapVsLine>=0?'var(--amber)':'var(--red)';
+    const gapStr    = wi===0?'WC1':wi===1?'WC2':gapVsLine===0?'LINE':(gapVsLine>0?'+'+gapVsLine:''+gapVsLine);
+    html+=`<div class="rrow${you?' you':elim?' out':''}">
+      <div class="rrank" style="color:${inWC?'var(--amber)':elim?'var(--red)':'var(--text2)'}">${wi+1}</div>
+      <div class="rball" style="border-color:${color};color:${color}">${t[1]}</div>
+      <div class="rinfo">
+        <div class="rname" style="color:${you?'var(--accent)':elim?'var(--text2)':'var(--text)'}">${t[0].split(' ').slice(-1)[0]}</div>
+        <div class="rstats">${t[2]}pts · ${t[3]}-${t[4]}${t[5]?'-'+t[5]:''}${sk?` <span style="color:${sk.startsWith('W')?'var(--green)':'var(--red)'}">${sk}</span>`:''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="rwins" style="color:${you?'var(--accent)':elim?'var(--text2)':'var(--text)'}">${t[2]}pts</div>
+        ${elim?`<div class="rgap" style="color:var(--red)">ELIM</div>`:`<div class="rgap" style="color:${gapColor}">${gapStr}</div>`}
+      </div>
+    </div>`;
+  });
+
+  return html+'</div>';
+}
+
+// ============================================================
+// MAIN PICK & RENDER
+// ============================================================
+let CL='nba';
+
+function pick(abbr) {
+  if(!abbr) return;
+  let conf, confName, league=CL;
+  let found = null, rank = 0;
+
+  if(league==='nba') {
+    const ei=NBA.east.findIndex(t=>t[1]===abbr);
+    const wi=NBA.west.findIndex(t=>t[1]===abbr);
+    if(ei>=0){conf=NBA.east;confName='EASTERN';rank=ei+1;found=NBA.east[ei];}
+    else if(wi>=0){conf=NBA.west;confName='WESTERN';rank=wi+1;found=NBA.west[wi];}
+  } else if(league==='nhl') {
+    const ei=NHL.east.findIndex(t=>t[1]===abbr);
+    const wi=NHL.west.findIndex(t=>t[1]===abbr);
+    if(ei>=0){conf=NHL.east;confName='EASTERN';rank=ei+1;found=NHL.east[ei];}
+    else if(wi>=0){conf=NHL.west;confName='WESTERN';rank=wi+1;found=NHL.west[wi];}
+  } else if(league==='wnba') {
+    const ei=WNBA.east.findIndex(t=>t[1]===abbr);
+    const wi=WNBA.west.findIndex(t=>t[1]===abbr);
+    if(ei>=0){conf=WNBA.east;confName='EASTERN';rank=ei+1;found=WNBA.east[ei];}
+    else if(wi>=0){conf=WNBA.west;confName='WESTERN';rank=wi+1;found=WNBA.west[wi];}
+  }
+  if(!found) return;
+
+  const name = found[0];
+  const w = league==='nhl' ? found[3] : found[2];
+  const l = league==='nhl' ? found[4] : found[3];
+  // NHL: [0]name,[1]abbr,[2]pts,[3]w,[4]l,[5]otl,[6]rem,[7]streak,[8]color,[9]elim,[10]clinched,[11]confRank,[12]divRank,[13]div
+  const color = found[league==='nhl'?8:league==='wnba'?4:8];
+  const rem   = found[league==='nhl'?6:league==='wnba'?(44-w-l):4] || (44-w-l);
+  const streak = found[7] || '';
+  const streakN = parseInt((streak||'').replace(/[WL]/,''))||1;
+  const hot = (streak||'').startsWith('W')&&streakN>=3;
+  const cold = (streak||'').startsWith('L')&&streakN>=3;
+
+  let odds;
+  if(league==='nba') odds=nbaOdds(found,rank,conf);
+  else if(league==='nhl') odds=nhlOdds(found,rank);
+  else odds=wnbaOdds(found,rank,conf);
+
+  const today = league==='nba'?NBA.today:league==='nhl'?NHL.today:WNBA.today;
+  const cheerItems = getCheerItems(abbr,conf,rank,today,league);
+  const story = getStory(found,rank,conf,odds,league);
+  const urgColors={'green':'var(--green)','amber':'var(--amber)','red':'var(--red)','dim':'var(--text3)'};
+  const urgColor = urgColors[story.urg]||'var(--blue)';
+
+  const inAuto = league==='nba'?rank<=6:league==='wnba'?rank<=4:rank<=8; // NHL: top 8 in playoffs
+  const inPI = league==='nba'&&rank>=7&&rank<=10; // only NBA has play-in
+
+  // Seed label
+  let seedLabel, seedColor;
+  if(league==='nba'){
+    const elim = found[9]||w+rem<conf[9][2];
+    if(elim){seedLabel='Eliminated';seedColor='var(--red)';}
+    else if(inAuto){seedLabel=`#${rank} — Auto Playoff`;seedColor='var(--green)';}
+    else if(inPI){seedLabel=`#${rank} — Play-In`;seedColor='var(--amber)';}
+    else{seedLabel=`#${rank} — Outside`;seedColor='var(--red)';}
+  } else if(league==='nhl'){
+    if(found[9]){seedLabel='Eliminated';seedColor='var(--red)';}
+    else if(found[10]==='div'){seedLabel=`Div Leader · Conf #${rank}`;seedColor='var(--green)';}
+    else if(found[10]==='playoff'){seedLabel=`Clinched · Conf #${rank}`;seedColor='var(--green)';}
+    else if(rank<=8){seedLabel=`Conf #${rank} · In playoff picture`;seedColor='var(--amber)';}
+    else{seedLabel=`Conf #${rank} · Outside`;seedColor='var(--red)';}
+  } else {
+    if(rank<=4){seedLabel=`#${rank} Seed`;seedColor='var(--green)';}
+    else{seedLabel='Outside Playoffs';seedColor='var(--red)';}
+  }
+
+  const recDisplay = league==='nhl'
+    ? `${found[3]}-${found[4]}-${found[5]}`
+    : `${w}-${l}`;
+  const recMeta = league==='nhl'
+    ? `${found[2]} PTS · ${found[6]} GAMES LEFT`
+    : league==='wnba'
+    ? `${44-w-l} GAMES LEFT`
+    : `${rem} GAMES LEFT · ${w+l} PLAYED`;
+
+  document.getElementById('app').innerHTML = `
+  <div class="grid">
+  <div class="lcol">
+
+    <!-- HERO + ODDS -->
+    <div class="card">
+      <div class="hero" style="background:linear-gradient(110deg,${color}14,transparent 55%)">
+        <div class="hero-l">
+          <div class="tball" style="border-color:${color};color:${color}">${abbr}</div>
+          <div>
+            <div class="tname">${name}</div>
+            <div class="tmeta">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2)">${league==='nhl'?found[13]+' Division':confName+' CONF'}</span>
+              ${streak?`<span class="streakbadge" style="background:${hot?'var(--gdim)':cold?'var(--rdim)':'var(--bg3)'};color:${hot?'var(--green)':cold?'var(--red)':'var(--text2)'};border:1px solid ${hot?'rgba(0,230,118,.2)':cold?'rgba(255,68,68,.2)':'var(--border)'}">${hot?'🔥':cold?'🧊':''}${streak}</span>`:''}
+            </div>
+          </div>
+        </div>
+        <div class="hero-r">
+          <div class="rec" style="color:${color}">${recDisplay}</div>
+          <div class="recmeta">${recMeta}</div>
+        </div>
+      </div>
+
+      <div class="stats3">
+        <div class="s3"><div class="s3v" style="color:${color}">#${rank}</div><div class="s3l">Conf Rank</div></div>
+        <div class="s3">
+          <div class="s3v" style="color:${league==='nba'?(found[6]>=7?'var(--green)':found[6]<=3?'var(--red)':'var(--amber)'):'var(--text)'}">
+            ${league==='nba'?found[11]:league==='nhl'?found[14]:`${w}-${l}`}
+          </div>
+          <div class="s3l">${league==='nba'?'Last 10':league==='nhl'?'Last 10':'Record'}</div>
+        </div>
+        <div class="s3">
+          ${league==='nba'?`
+            <div style="display:flex;gap:8px;justify-content:center;align-items:center;height:100%">
+              <div style="text-align:center">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--text2);line-height:1">Home</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-top:2px">${found[12]||'—'}</div>
+              </div>
+              <div style="width:1px;height:32px;background:var(--border)"></div>
+              <div style="text-align:center">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--text2);line-height:1">Away</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-top:2px">${found[13]||'—'}</div>
+              </div>
+            </div>
+          `:`<div class="s3v" style="color:${odds.mp>60?'var(--green)':odds.mp>30?'var(--amber)':'var(--red)'}">${league==='nhl'?found[2]+'pts':odds.mp+'%'}</div><div class="s3l">${league==='nhl'?'Total Points':'Make Playoffs'}</div>`}
+        </div>
+      </div>
+
+      ${renderProbs(odds,found,rank,league,conf)}
+    </div>
+
+    <!-- WHO TO CHEER FOR TODAY -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">Who to Cheer For Today</span>
+        <span class="csub">FRI MAR 27 · ${today.length} GAMES</span>
+      </div>
+      ${renderCheer(cheerItems)}
+    </div>
+
+    <!-- FULL PLAYOFF BRACKET -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">Full Playoff Bracket</span>
+        <span class="csub">IF SEASON ENDED TODAY · ${league==='nba'?'SEEDS 7/8 = PLAY-IN TBD':league==='wnba'?'TOP 4 PER CONF':'TOP 3 PER DIV + 2 WC'}</span>
+      </div>
+      <div style="padding:14px">${renderBracket(conf,confName,abbr,league)}</div>
+    </div>
+
+    ${league==='nba'&&inPI?`
+    <!-- NBA PLAY-IN BRACKET -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">Play-In Bracket — ${confName} Conference</span>
+        <span class="csub">% = ODDS TO MAKE PLAYOFFS FROM PLAY-IN</span>
+      </div>
+      ${renderPlayIn(conf,abbr)}
+    </div>`:''
+    }
+
+  </div>
+  <div class="rcol">
+
+    <!-- STANDINGS RACE -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">${confName} Standings</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--text3)">${league==='nba'?'TOP 6 AUTO · 7-10 PLAY-IN':league==='wnba'?'TOP 4 QUALIFY':'TOP 3 PER DIV + 2 WC'}</span>
+      </div>
+      ${renderRace(conf,abbr,league)}
+    </div>
+
+    <!-- STORYLINE -->
+    <div class="card" style="border-color:${urgColor}33">
+      <div style="padding:13px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,${urgColor}08,transparent)">
+        <div class="storyurg" style="color:${urgColor}">THE STORYLINE</div>
+        <div class="storyh">${story.h}</div>
+        <div class="storysub">${story.sub}</div>
+      </div>
+      <div class="story">
+        <div class="storybody">${story.b}</div>
+      </div>
+    </div>
+
+    <!-- THE NUMBERS -->
+    <div class="card">
+      <div class="chdr"><span class="ctitle">The Numbers</span></div>
+      <div class="nums">
+        ${league==='nba'?`
+          <div class="nrow"><span class="nlbl">Games remaining</span><span class="nval" style="color:var(--text2)">${rem}</span></div>
+          <div class="nrow"><span class="nlbl">Net rating (season)</span><span class="nval" style="color:${found[5]>=0?'var(--green)':'var(--red)'}">${found[5]>0?'+':''}${found[5].toFixed(1)}</span></div>
+          <div class="nrow"><span class="nlbl">Last 10 games</span><span class="nval" style="color:${found[6]>=7?'var(--green)':found[6]<=3?'var(--red)':'var(--amber)'}">${found[6]}-${10-found[6]}</span></div>
+          ${found[9]?`
+            <div class="nrow"><span class="nlbl">Status</span><span class="nval" style="color:var(--red)">Eliminated</span></div>
+          `:''}
+          ${!found[9]&&rank<=6&&rank>1?`
+            <div class="nrow"><span class="nlbl">Games ahead of #7 seed</span><span class="nval" style="color:var(--green)">+${w-conf[6][2]}</span></div>
+          `:''}
+          ${!found[9]&&rank===1?`
+            <div class="nrow"><span class="nlbl">Games ahead of #2 seed</span><span class="nval" style="color:var(--green)">+${w-conf[1][2]}</span></div>
+          `:''}
+          ${!found[9]&&rank>=7&&rank<=10?`
+            <div class="nrow"><span class="nlbl">Games ${w>=conf[9][2]?'above':'back of'} play-in line</span><span class="nval" style="color:${w>=conf[9][2]?'var(--green)':'var(--red)'}">${w>=conf[9][2]?'+':''}${w-conf[9][2]}</span></div>
+            <div class="nrow"><span class="nlbl">Games back of auto spot (#6)</span><span class="nval" style="color:var(--amber)">${conf[5][2]-w}</span></div>
+          `:''}
+          ${!found[9]&&rank>10?`
+            <div class="nrow"><span class="nlbl">Games back of play-in</span><span class="nval" style="color:var(--red)">${conf[9][2]-w}</span></div>
+          `:''}
+        `:''}
+        ${league==='nhl'?`
+          <div class="nrow"><span class="nlbl">Points</span><span class="nval" style="color:var(--text)">${found[2]}</span></div>
+          <div class="nrow"><span class="nlbl">Record</span><span class="nval" style="color:var(--text2)">${found[3]}-${found[4]}${found[5]?'-'+found[5]:''}</span></div>
+          <div class="nrow"><span class="nlbl">Points pace (82 gm)</span><span class="nval" style="color:var(--text2)">${Math.round(found[2]/(found[3]+found[4]+(found[5]||0)||1)*82)}</span></div>
+          <div class="nrow"><span class="nlbl">Games remaining</span><span class="nval" style="color:var(--text2)">${found[6]}</span></div>
+          <div class="nrow"><span class="nlbl">Max possible points</span><span class="nval" style="color:var(--text)">${found[2]+found[6]*2}</span></div>
+          ${!found[9]&&found[11]<=8?`<div class="nrow"><span class="nlbl">Points ${found[2]>=(conf[7]?.[2]||72)?'above':'back of'} wild card</span><span class="nval" style="color:${found[2]>=(conf[7]?.[2]||72)?'var(--green)':'var(--red)'}">${found[2]>=(conf[7]?.[2]||72)?'+':''}${found[2]-(conf[7]?.[2]||72)}</span></div>`:''}
+        `:''}
+        ${league==='nhl'&&found[11]>8&&!found[9]?`
+          <div class="nrow"><span class="nlbl">Points back of wild card</span><span class="nval" style="color:var(--red)">${(conf[7]?.[2]||72)-found[2]}</span></div>
+        `:''}
+        ${league==='wnba'?`
+          <div class="nrow"><span class="nlbl">${rank<=4?'Games above 5th seed':'Games back of playoffs'}</span><span class="nval" style="color:${rank<=4?'var(--green)':'var(--red)'}">${rank<=4?'+':''}${w-(rank<=4?(conf[4]?.[2]||0):conf[3][2])}</span></div>
+          <div class="nrow"><span class="nlbl">Games remaining</span><span class="nval" style="color:var(--text2)">${44-w-l}</span></div>
+        `:''}
+      </div>
+    </div>
+
+  </div>
+  </div>`;
+
+  // Animate probability bars
+  setTimeout(()=>{
+    const b1=document.getElementById('pbar1');
+    const b2=document.getElementById('pbar2');
+    const b3=document.getElementById('pbar3');
+    const b4=document.getElementById('pbar4');
+    if(b1) b1.style.width=odds.mp+'%';
+    if(b2) b2.style.width=(league==='nba'?odds.auto:league==='nhl'?odds.div:odds.mp)+'%';
+    if(b3) b3.style.width=(league==='nba'?odds.pi:league==='nhl'?odds.wc:0)+'%';
+    if(b4) b4.style.width=(odds.sp||0)+'%';
+  },100);
+}
+
+// ============================================================
+// LEAGUE SWITCHER & TEAM SELECTOR
+// ============================================================
+function switchLeague(lg) {
+  CL = lg;
+  document.querySelectorAll('.ltab').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  // Coming soon leagues
+  const comingSoon = {
+    wnba: { ico:'🏀', title:'WNBA', msg:'Stats coming after July 19th All-Star Break', color:'var(--purple)' },
+    mlb:  { ico:'⚾', title:'MLB',  msg:'Stats coming after July 14th All-Star Break', color:'var(--amber)' },
+    nfl:  { ico:'🏈', title:'NFL',  msg:'Stats coming after Week 9',                   color:'var(--green)' },
+  };
+
+  if(comingSoon[lg]) {
+    const { ico, title, msg, color } = comingSoon[lg];
+    document.getElementById('tsel').innerHTML = `<option value="">— ${title} not yet active —</option>`;
+    document.getElementById('app').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+        <div style="text-align:center;max-width:480px;padding:40px 24px">
+          <div style="font-size:64px;margin-bottom:20px">${ico}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:12px">${title} Playoff Tracker</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:${color};background:${color}15;border:1px solid ${color}33;border-radius:8px;padding:14px 20px;margin-bottom:16px;letter-spacing:.04em">${msg}</div>
+          <div style="font-size:14px;color:var(--text2);line-height:1.7">Once the season reaches that point, this tab will automatically activate with full standings, playoff odds, who to cheer for tonight, and the complete bracket picture.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  buildSel();
+  document.getElementById('app').innerHTML = `<div class="empty">
+    <div class="eico">${lg==='nba'?'🏀':'🏒'}</div>
+    <div class="etitle">Select Your ${lg.toUpperCase()} Team</div>
+    <div class="esub">Pick a team to see their full playoff picture.</div>
+  </div>`;
+}
+
+function buildSel() {
+  const sel = document.getElementById('tsel');
+  sel.innerHTML = `<option value="">— Select a ${CL.toUpperCase()} team —</option>`;
+  let data = {};
+  if(CL==='nba') data = {East:NBA.east,West:NBA.west};
+  else if(CL==='nhl') data = {East:NHL.east,West:NHL.west};
+  else if(CL==='wnba') data = {East:WNBA.east,West:WNBA.west};
+  Object.entries(data).forEach(([conf,teams]) => {
+    const grp = document.createElement('optgroup');
+    grp.label = conf+' Conference';
+    [...teams].sort((a,b)=>a[0].localeCompare(b[0])).forEach(t => {
+      const o = document.createElement('option');
+      o.value = t[1]; o.textContent = t[0];
+      grp.appendChild(o);
+    });
+    sel.appendChild(grp);
+  });
+}
+
+// ── BOOT ─────────────────────────────────────────────────────
+// 1. Render immediately with fallback hardcoded data
+// 2. Fetch live data from backend — re-renders when ready
+buildSel();
+setTimeout(()=>{ document.getElementById('tsel').value='MIA'; pick('MIA'); }, 150);
+fetchLiveData();
+</script>
+</body>
+</html>
