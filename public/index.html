@@ -203,10 +203,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
     <button class="ltab" onclick="switchLeague('mlb')">MLB</button>
     <button class="ltab" onclick="switchLeague('nfl')">NFL</button>
   </nav>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-left:auto">
-    <div class="livepill"><div class="livdot"></div>LIVE · MAR 29, 2026</div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:.08em;white-space:nowrap">UPDATES NIGHTLY · 2AM ET</div>
-  </div>
+  <div class="livepill"><div class="livdot"></div>LIVE · MAR 29, 2026</div>
 </header>
 
 <div class="selbar">
@@ -226,62 +223,379 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
 
 <script>
 // ============================================================
-// LIVE DATA LOADER
-// Fetches from /api/data on page load
-// Falls back to hardcoded data if API is unavailable
-// Monte Carlo odds override formula-based odds when available
+// LIVE DATA ENGINE — runs entirely in the browser
+// 1. Fetches NBA + NHL APIs directly (no backend needed)
+// 2. Computes net ratings from game log
+// 3. Runs Monte Carlo simulation (5,000 runs)
+// 4. Updates UI with live data + real odds
 // ============================================================
 
-// Will be populated by fetchLiveData()
 let MC_ODDS = { nba: null, nhl: null };
-let DATA_UPDATED_AT = null;
+let NBA_H2H = {};
+let NBA_B2B = new Set();
+
+const NBA_HEADERS = {
+  'Origin':'https://www.nba.com',
+  'Referer':'https://www.nba.com/',
+  'x-nba-stats-origin':'stats',
+  'x-nba-stats-token':'true',
+  'User-Agent':'Mozilla/5.0'
+};
+
+const TEAM_COLORS = {
+  ATL:'#E03A3E',BOS:'#007A33',BKN:'#444444',CHA:'#00788C',CHI:'#CE1141',
+  CLE:'#860038',DAL:'#0053BC',DEN:'#FEC524',DET:'#C8102E',GSW:'#1D428A',
+  HOU:'#CE1141',IND:'#FDBB30',LAC:'#C8102E',LAL:'#552583',MEM:'#5D76A9',
+  MIA:'#98002E',MIL:'#00471B',MIN:'#78BE20',NOP:'#B4975A',NYK:'#006BB6',
+  OKC:'#007AC1',ORL:'#0077C0',PHI:'#006BB6',PHX:'#E56020',POR:'#E03A3E',
+  SAC:'#5A2D81',SAS:'#C4CED4',TOR:'#CE1141',UTA:'#F9A01B',WAS:'#4A90D9',
+  ANA:'#FC4C02',BUF:'#00B2A9',CAR:'#CC0000',CBJ:'#CE1126',CGY:'#C8102E',
+  COL:'#6F263D',EDM:'#FF4C00',FLA:'#C8102E',LAK:'#A2AAAD',MTL:'#AF1E2D',
+  NJD:'#CE1126',NSH:'#FFB81C',NYI:'#00539B',NYR:'#0038A8',OTT:'#C52032',
+  PHI_NHL:'#F74902',PIT:'#FCB514',SEA:'#99D9D9',SJS:'#006D75',STL:'#0038A8',
+  TBL:'#0099CC',TOR_NHL:'#003E7E',VAN:'#008852',VGK:'#B4975A',WPG:'#55B7E4',
+  WSH:'#C8102E',UTA_NHL:'#71AFE5',DAL_NHL:'#006847',MIN_NHL:'#154734',
+};
+
+// ── MONTE CARLO ENGINE ────────────────────────────────────────
+
+function sigmoid(x, d) { return 1 / (1 + Math.exp(-x / d)); }
+
+function nbaWinProb(home, away, h2h, b2b) {
+  const homeANR = home[5]*0.70 + (home[14]||home[5])*0.30;
+  const awayANR = away[5]*0.70 + (away[14]||away[5])*0.30;
+  let pd = homeANR - awayANR + (b2b.has(away[1]) ? 3.0 : 2.5);
+  const hh = h2h[home[1]]?.[away[1]];
+  if (hh?.games > 0) {
+    const w = Math.min(hh.games/4, 0.25);
+    return sigmoid(pd,7)*(1-w) + (hh.wins/hh.games)*w;
+  }
+  return sigmoid(pd, 7);
+}
+
+function nhlWinProb(home, away, b2b) {
+  const hAGD = (home[15]||0)*0.70 + (home[16]||0)*0.30;
+  const aAGD = (away[15]||0)*0.70 + (away[16]||0)*0.30;
+  return sigmoid(hAGD - aAGD + (b2b.has(away[1]) ? 0.20 : 0.15), 2.5);
+}
+
+function simulatePlayIn(s7, s8, s9, s10, h2h) {
+  const b = new Set();
+  const p7 = nbaWinProb(s7, s8, h2h, b);
+  const g1w = Math.random() < p7 ? s7 : s8;
+  const g1l = g1w === s7 ? s8 : s7;
+  const p9 = nbaWinProb(s9, s10, h2h, b);
+  const g2w = Math.random() < p9 ? s9 : s10;
+  const p3 = nbaWinProb(g1l, g2w, h2h, b);
+  const g3w = Math.random() < p3 ? g1l : g2w;
+  return new Set([g1w[1], g3w[1]]);
+}
+
+function runNBAMonteCarlo(east, west, remaining, h2h, b2b, N=5000) {
+  const all = [...east, ...west];
+  const tm = {}; all.forEach(t => tm[t[1]] = t);
+  const counts = {}; all.forEach(t => { counts[t[1]] = {mp:0,top6:0,pi:0,sp:0}; });
+  for (let s=0; s<N; s++) {
+    const wins = {}; all.forEach(t => { wins[t[1]] = t[2]; });
+    for (const g of remaining) {
+      if (!tm[g.home] || !tm[g.away]) continue;
+      if (Math.random() < nbaWinProb(tm[g.home], tm[g.away], h2h, b2b)) wins[g.home]++;
+      else wins[g.away]++;
+    }
+    for (const conf of [east, west]) {
+      const sorted = [...conf].sort((a,b) => (wins[b[1]]-wins[a[1]]) || (a[3]-b[3]));
+      sorted.slice(0,6).forEach(t => { counts[t[1]].top6++; counts[t[1]].mp++; });
+      const pi = sorted.slice(6,10);
+      pi.forEach(t => counts[t[1]].pi++);
+      if (pi.length===4) {
+        const winners = simulatePlayIn(pi[0],pi[1],pi[2],pi[3], h2h);
+        pi.forEach(t => { if(winners.has(t[1])){counts[t[1]].sp++;counts[t[1]].mp++;} });
+      }
+    }
+  }
+  const odds = {};
+  all.forEach(t => {
+    const c = counts[t[1]];
+    odds[t[1]] = {mp:Math.round(c.mp/N*100),auto:Math.round(c.top6/N*100),pi:Math.round(c.pi/N*100),sp:Math.round(c.sp/N*100)};
+  });
+  return odds;
+}
+
+function runNHLMonteCarlo(east, west, remaining, b2b, N=5000) {
+  const all = [...east, ...west];
+  const tm = {}; all.forEach(t => tm[t[1]] = t);
+  const counts = {}; all.forEach(t => { counts[t[1]] = {mp:0,div:0,wc:0}; });
+  for (let s=0; s<N; s++) {
+    const pts = {}; all.forEach(t => { pts[t[1]] = t[2]; });
+    for (const g of remaining) {
+      if (!tm[g.home] || !tm[g.away]) continue;
+      const wp = nhlWinProb(tm[g.home], tm[g.away], b2b);
+      if (Math.random() < 0.23) {
+        pts[g.home]++; pts[g.away]++;
+        if (Math.random() < wp) pts[g.home]++; else pts[g.away]++;
+      } else {
+        if (Math.random() < wp) pts[g.home]+=2; else pts[g.away]+=2;
+      }
+    }
+    for (const conf of [east, west]) {
+      const sorted = [...conf].sort((a,b) => (pts[b[1]]-pts[a[1]]) || (b[2]-a[2]));
+      const divs = {}; sorted.forEach(t => { if(!divs[t[13]])divs[t[13]]=[]; divs[t[13]].push(t[1]); });
+      const top3 = new Set(Object.values(divs).flatMap(d => d.slice(0,3)));
+      const wc = sorted.filter(t => !top3.has(t[1])).slice(0,2).map(t => t[1]);
+      const wcSet = new Set(wc);
+      sorted.forEach(t => {
+        if (top3.has(t[1])) { counts[t[1]].div++; counts[t[1]].mp++; }
+        else if (wcSet.has(t[1])) { counts[t[1]].wc++; counts[t[1]].mp++; }
+      });
+    }
+  }
+  const odds = {};
+  all.forEach(t => {
+    const c = counts[t[1]];
+    odds[t[1]] = {mp:Math.round(c.mp/N*100),div:Math.round(c.div/N*100),wc:Math.round(c.wc/N*100)};
+  });
+  return odds;
+}
+
+// ── NBA DATA FETCHER ──────────────────────────────────────────
+
+async function fetchNBAData() {
+  const [standingsRes, gamelogRes, scoreboardRes] = await Promise.all([
+    fetch('https://stats.nba.com/stats/leaguestandingsv3?LeagueID=00&Season=2025-26&SeasonType=Regular+Season', {headers:NBA_HEADERS}),
+    fetch('https://stats.nba.com/stats/leaguegamelog?Season=2025-26&SeasonType=Regular+Season&Direction=DESC&Sorter=DATE&Counter=1000', {headers:NBA_HEADERS}),
+    fetch('https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json'),
+  ]);
+
+  const [standData, logData, scoreData] = await Promise.all([
+    standingsRes.json(), gamelogRes.json(), scoreboardRes.json()
+  ]);
+
+  // Parse standings
+  const sh = standData.resultSets[0].headers;
+  const si = n => sh.indexOf(n);
+  const rows = standData.resultSets[0].rowSet.map(r => ({
+    abbr: r[si('TeamAbbreviation')], name: `${r[si('TeamCity')]} ${r[si('TeamName')]}`,
+    conf: r[si('Conference')], w: r[si('WINS')], l: r[si('LOSSES')],
+    home: r[si('HOME')], road: r[si('ROAD')], l10: r[si('L10')],
+    streak: (r[si('strCurrentStreak')]||'').toString().trim().replace(/([WL])\s+(\d+)/,'$1$2'),
+    clinched: (r[si('clinchIndicator')]||'').toLowerCase(),
+    confRank: r[si('PlayoffRank')],
+  }));
+
+  // Parse game log — compute net ratings + H2H + B2B
+  const lh = logData.resultSets[0].headers;
+  const li = n => lh.indexOf(n);
+  const gamelog = logData.resultSets[0].rowSet.map(r => ({
+    abbr: r[li('TEAM_ABBREVIATION')], gameId: r[li('GAME_ID')],
+    date: r[li('GAME_DATE')], pts: r[li('PTS')], wl: r[li('WL')],
+  }));
+
+  // Pair games by gameId
+  const byGame = {};
+  gamelog.forEach(g => { if(!byGame[g.gameId])byGame[g.gameId]=[]; byGame[g.gameId].push(g); });
+
+  const teamGames = {}; // abbr -> [{pts, oppPts, date}]
+  const h2h = {};
+  Object.values(byGame).forEach(pair => {
+    if (pair.length !== 2) return;
+    const [t1,t2] = pair;
+    if(!teamGames[t1.abbr])teamGames[t1.abbr]=[];
+    if(!teamGames[t2.abbr])teamGames[t2.abbr]=[];
+    teamGames[t1.abbr].push({pts:t1.pts,oppPts:t2.pts,date:t1.date});
+    teamGames[t2.abbr].push({pts:t2.pts,oppPts:t1.pts,date:t2.date});
+    if(!h2h[t1.abbr])h2h[t1.abbr]={};
+    if(!h2h[t2.abbr])h2h[t2.abbr]={};
+    if(!h2h[t1.abbr][t2.abbr])h2h[t1.abbr][t2.abbr]={wins:0,games:0};
+    if(!h2h[t2.abbr][t1.abbr])h2h[t2.abbr][t1.abbr]={wins:0,games:0};
+    h2h[t1.abbr][t2.abbr].games++; h2h[t2.abbr][t1.abbr].games++;
+    if(t1.wl==='W') h2h[t1.abbr][t2.abbr].wins++; else h2h[t2.abbr][t1.abbr].wins++;
+  });
+
+  NBA_H2H = h2h;
+
+  // Compute net ratings
+  const netRatings = {};
+  Object.entries(teamGames).forEach(([abbr, games]) => {
+    games.sort((a,b) => b.date.localeCompare(a.date));
+    const season = games.reduce((a,g)=>({pts:a.pts+g.pts,opp:a.opp+g.oppPts,n:a.n+1}),{pts:0,opp:0,n:0});
+    const l15 = games.slice(0,15).reduce((a,g)=>({pts:a.pts+g.pts,opp:a.opp+g.oppPts,n:a.n+1}),{pts:0,opp:0,n:0});
+    netRatings[abbr] = {
+      season: season.n>0 ? Math.round((season.pts-season.opp)/season.n*10)/10 : 0,
+      l15: l15.n>0 ? Math.round((l15.pts-l15.opp)/l15.n*10)/10 : 0,
+    };
+  });
+
+  // B2B detection
+  const today = new Date().toISOString().split('T')[0].replace(/-/g,'');
+  const yesterday = new Date(Date.now()-86400000).toISOString().split('T')[0].replace(/-/g,'');
+  const playedYesterday = new Set();
+  gamelog.forEach(g => { if(g.date===yesterday) playedYesterday.add(g.abbr); });
+  NBA_B2B = playedYesterday;
+
+  // Build standings arrays
+  const makeTeam = (r, idx) => {
+    const nr = netRatings[r.abbr] || {season:0,l15:0};
+    const rem = 82-r.w-r.l;
+    const l10parts = r.l10.split('-');
+    const l10w = parseInt(l10parts[0])||0;
+    const ci = r.clinched;
+    const clinched = ci.includes('x')?'auto':ci.includes('p')?'pi':false;
+    return [r.name,r.abbr,r.w,r.l,rem,nr.season,l10w,r.streak,TEAM_COLORS[r.abbr]||'#888',false,clinched,r.l10,r.home,r.road,nr.l15];
+  };
+
+  const east = rows.filter(r=>r.conf==='East').sort((a,b)=>b.w-a.w||a.l-b.l).map(makeTeam);
+  const west = rows.filter(r=>r.conf==='West').sort((a,b)=>b.w-a.w||a.l-b.l).map(makeTeam);
+
+  // Parse scoreboard
+  const games = scoreData.scoreboard?.games||[];
+  const today2 = games.map(g => {
+    const hw = g.homeTeam.teamWinProbability!=null ? Math.round(g.homeTeam.teamWinProbability*100) : 50;
+    return {h:g.homeTeam.teamTricode,a:g.awayTeam.teamTricode,hw,aw:100-hw,
+      t:g.gameEt?new Date(g.gameEt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}):g.gameStatusText};
+  });
+
+  NBA.east = east;
+  NBA.west = west;
+  NBA.today = today2;
+}
+
+// ── NHL DATA FETCHER ──────────────────────────────────────────
+
+async function fetchNHLData() {
+  const [standRes, scoreRes] = await Promise.all([
+    fetch('https://api-web.nhle.com/v1/standings/now'),
+    fetch('https://api-web.nhle.com/v1/scoreboard/now'),
+  ]);
+  const [standData, scoreData] = await Promise.all([standRes.json(), scoreRes.json()]);
+
+  const standings = standData.standings;
+  const makeNHLTeam = (t, confRank) => {
+    const abbr = t.teamAbbrev.default;
+    const rem = 82 - t.gamesPlayed;
+    const ci = t.clinchIndicator||'';
+    const clinched = ci==='x'?'div':ci==='y'?'playoff':false;
+    const streak = t.streakCode&&t.streakCount?`${t.streakCode}${t.streakCount}`:'';
+    const l10str = `${t.l10Wins}-${t.l10Losses}-${t.l10OtLosses}`;
+    const gdSeason = t.gamesPlayed>0?(t.goalFor-t.goalAgainst)/t.gamesPlayed:0;
+    const gdL10 = t.l10GamesPlayed>0?(t.l10GoalsFor-t.l10GoalsAgainst)/t.l10GamesPlayed:gdSeason;
+    const color = abbr==='PHI'?'#F74902':abbr==='TOR'?'#003E7E':abbr==='DAL'?'#006847':abbr==='MIN'?'#154734':TEAM_COLORS[abbr]||'#888';
+    return [t.teamName.default,abbr,t.points,t.wins,t.losses,t.otLosses,rem,streak,color,false,clinched,confRank,t.divisionSequence,t.divisionName,l10str,Math.round(gdSeason*100)/100,Math.round(gdL10*100)/100];
+  };
+
+  const east = standings.filter(t=>t.conferenceName==='Eastern').sort((a,b)=>b.points-a.points).map((t,i)=>makeNHLTeam(t,i+1));
+  const west = standings.filter(t=>t.conferenceName==='Western').sort((a,b)=>b.points-a.points).map((t,i)=>makeNHLTeam(t,i+1));
+
+  // Today's games
+  const games = scoreData.gamesByDate?.[0]?.games||[];
+  const today = games.map(g => {
+    const home=g.homeTeam?.abbrev||'', away=g.awayTeam?.abbrev||'';
+    const t = g.startTimeUTC?new Date(g.startTimeUTC).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}):'';
+    return {h:home,a:away,hw:50,aw:50,t};
+  });
+
+  NHL.east = east;
+  NHL.west = west;
+  NHL.today = today;
+}
+
+// ── NHL SCHEDULE FETCHER (for Monte Carlo remaining games) ────
+
+async function fetchNHLSchedule() {
+  const games = [];
+  const end = '2026-04-17';
+  let url = 'https://api-web.nhle.com/v1/schedule/now';
+  while (url) {
+    const res = await fetch(url);
+    const data = await res.json();
+    for (const week of (data.gameWeek||[])) {
+      if (week.date > end) break;
+      for (const g of (week.games||[])) {
+        if (g.gameType!==2||g.gameState!=='FUT') continue;
+        games.push({home:g.homeTeam?.abbrev,away:g.awayTeam?.abbrev,date:week.date});
+      }
+    }
+    const next = data.nextStartDate;
+    url = next&&next<=end ? `https://api-web.nhle.com/v1/schedule/${next}` : null;
+  }
+  return games;
+}
+
+async function fetchNBASchedule() {
+  const res = await fetch('https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json');
+  const data = await res.json();
+  const today = new Date().toISOString().split('T')[0];
+  const games = [];
+  for (const d of data.leagueSchedule.gameDates) {
+    if (d.gameDate <= today) continue;
+    for (const g of d.games) {
+      const home=g.homeTeam?.teamTricode, away=g.awayTeam?.teamTricode;
+      if (home&&away) games.push({home,away,date:d.gameDate});
+    }
+  }
+  return games;
+}
+
+// ── MAIN LIVE DATA LOADER ─────────────────────────────────────
 
 async function fetchLiveData() {
+  console.log('[live] Starting data fetch...');
+
+  // Update pill to show loading
+  const pill = document.querySelector('.livepill');
+  if (pill) pill.innerHTML = `<div class="livdot"></div>LOADING LIVE DATA...`;
+
   try {
-    const res = await fetch('/api/data');
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error);
+    // Fetch NBA + NHL data in parallel
+    await Promise.all([fetchNBAData(), fetchNHLData()]);
+    console.log('[live] Standings loaded. Fetching schedules...');
 
-    // Inject live standings
-    NBA.east  = json.nba.east;
-    NBA.west  = json.nba.west;
-    NBA.today = json.nba.today;
-    NHL.east  = json.nhl.east;
-    NHL.west  = json.nhl.west;
-    NHL.today = json.nhl.today;
+    // Fetch schedules for Monte Carlo
+    const [nbaRem, nhlRem] = await Promise.all([fetchNBASchedule(), fetchNHLSchedule()]);
+    console.log(`[live] NBA: ${nbaRem.length} games, NHL: ${nhlRem.length} games remaining`);
 
-    // Store Monte Carlo odds
-    if (json.odds?.nba) MC_ODDS.nba = json.odds.nba;
-    if (json.odds?.nhl) MC_ODDS.nhl = json.odds.nhl;
-
-    DATA_UPDATED_AT = json.updatedAt;
-
-    // Update live pill with real timestamp
-    const d = new Date(json.updatedAt);
-    const label = d.toLocaleString('en-US', {
-      month: 'short', day: 'numeric',
-      hour: 'numeric', minute: '2-digit',
-      timeZone: 'America/New_York'
+    // Compute NHL today win probs using model
+    const allNHL = [...NHL.east, ...NHL.west];
+    const nhlTM = {}; allNHL.forEach(t => nhlTM[t[1]]=t);
+    NHL.today = NHL.today.map(g => {
+      const home=nhlTM[g.h], away=nhlTM[g.a];
+      if(!home||!away) return g;
+      const hw = Math.round(nhlWinProb(home,away,new Set())*100);
+      return {...g,hw,aw:100-hw};
     });
-    const pill = document.querySelector('.livepill');
-    if (pill) pill.innerHTML = `<div class="livdot"></div>LIVE · ${label.toUpperCase()} ET`;
 
-    console.log('[live] Data loaded:', json.updatedAt);
+    // Compute NBA today win probs using model
+    const allNBA = [...NBA.east, ...NBA.west];
+    const nbaTM = {}; allNBA.forEach(t => nbaTM[t[1]]=t);
+    NBA.today = NBA.today.map(g => {
+      const home=nbaTM[g.h], away=nbaTM[g.a];
+      if(!home||!away) return g;
+      if (g.hw!==50) return g; // API already gave us real win prob
+      const hw = Math.round(nbaWinProb(home,away,NBA_H2H,NBA_B2B)*100);
+      return {...g,hw,aw:100-hw};
+    });
 
-  } catch (err) {
-    console.warn('[live] API unavailable, using fallback data:', err.message);
-    // Fallback data stays as-is (hardcoded below)
+    // Run Monte Carlo
+    console.log('[live] Running Monte Carlo (5,000 runs)...');
+    MC_ODDS.nba = runNBAMonteCarlo(NBA.east, NBA.west, nbaRem, NBA_H2H, NBA_B2B, 5000);
+    MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, nhlRem, new Set(), 5000);
+    console.log('[live] Monte Carlo complete.');
+
+    // Update live pill
+    const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
+    if (pill) pill.innerHTML = `<div class="livdot"></div>LIVE · ${now.toUpperCase()} ET`;
+
+  } catch(err) {
+    console.warn('[live] Error fetching live data:', err.message);
+    if (pill) pill.innerHTML = `<div class="livdot" style="background:var(--amber)"></div>USING CACHED DATA`;
   }
 
-  // Re-render selected team if one is already picked
+  // Re-render with live data + Monte Carlo odds
   const sel = document.getElementById('tsel');
+  buildSel();
   if (sel?.value) {
-    buildSel();
     pick(sel.value);
   } else {
-    buildSel();
-    setTimeout(() => { sel.value = 'MIA'; pick('MIA'); }, 150);
+    setTimeout(()=>{ sel.value='MIA'; pick('MIA'); }, 150);
   }
 }
 
@@ -1240,18 +1554,6 @@ function pick(abbr) {
         <span style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--text3)">${league==='nba'?'TOP 6 AUTO · 7-10 PLAY-IN':league==='wnba'?'TOP 4 QUALIFY':'TOP 3 PER DIV + 2 WC'}</span>
       </div>
       ${renderRace(conf,abbr,league)}
-    </div>
-
-    <!-- STORYLINE -->
-    <div class="card" style="border-color:${urgColor}33">
-      <div style="padding:13px 16px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,${urgColor}08,transparent)">
-        <div class="storyurg" style="color:${urgColor}">THE STORYLINE</div>
-        <div class="storyh">${story.h}</div>
-        <div class="storysub">${story.sub}</div>
-      </div>
-      <div class="story">
-        <div class="storybody">${story.b}</div>
-      </div>
     </div>
 
     <!-- THE NUMBERS -->
