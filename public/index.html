@@ -917,7 +917,7 @@ function renderProbs(odds, team, rank, league, conf) {
     const isElim  = team[9] || w+rem<cutoff;
     
     rows += probRow('% to Make the Playoffs',
-      isElim?'Mathematically eliminated':rank<=6&&clinched==='auto'?`Auto-qualified — clinched`:rank<=6?`In the Race — #${rank} seed`:rank<=10?'Must survive play-in tournament':'Chasing play-in line',
+      isElim?'Mathematically eliminated':rank<=6&&team[10]==='auto'?`Auto-qualified — clinched`:rank<=6?`In the Race — #${rank} seed`:rank<=10?'Must survive play-in tournament':'Chasing play-in line',
       odds.mp, oc(odds.mp), 'pbar1');
     
     if(!isElim) {
