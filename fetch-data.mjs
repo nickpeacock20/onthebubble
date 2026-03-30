@@ -71,7 +71,12 @@ async function main() {
     page++;
     const url = `https://api.balldontlie.io/nba/v1/games?seasons[]=2025&per_page=100&postseason=false${cursor?'&cursor='+cursor:''}`;
     const res  = await fetch(url, { headers: { Authorization: BDL_KEY } });
-    const data = await res.json();
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch(e) {
+      console.log('BDL raw response:', text.slice(0,200));
+      throw new Error('BDL returned non-JSON: ' + text.slice(0,100));
+    }
     if (!data.data) { console.log('BDL error:', JSON.stringify(data)); break; }
     console.log(`  Page ${page}: ${data.data.length} games`);
 
