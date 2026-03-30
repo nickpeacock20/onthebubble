@@ -689,10 +689,11 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
 
   // ── STEP 1: My own game first, always ──────────────────────
   const myGame = todayGames.find(g => g.h===teamAbbr || g.a===teamAbbr);
+  const gameIco = league==='nhl' ? '🏒' : '🏀';
   if(myGame) {
     const myWP = myGame.h===teamAbbr ? myGame.hw : myGame.aw;
     items.push({
-      type:'yourgame', ico:'🏀',
+      type:'yourgame', ico: gameIco,
       matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
       tag:'YOUR GAME',
       body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.`,
@@ -720,30 +721,44 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
   conf.forEach(t => {
     if(t[1] === teamAbbr) return;
 
-    // Elimination checks
-    const elimIdx  = league==='nhl' ? 11 : 9;
-    if(t[elimIdx]) return;
+    // Elimination check
+    if(t[9]) return;
 
     // NBA: skip teams that can't reach play-in or can't affect us
     if(league==='nba') {
       const tMax = t[2] + (t[4] || (82-t[2]-t[3]));
-      if(tMax < playinCutoff) return;          // can't reach play-in
+      if(tMax < playinCutoff) return;
     }
 
-    // True games back = ((myW - theirW) + (theirL - myL)) / 2
-    const myTeam  = conf[myIdx];
-    const gap     = league==='nhl'
-      ? myW - t[2]  // NHL: points difference
-      : ((myTeam[2] - t[2]) + (t[3] - myTeam[3])) / 2; // NBA: true GB
-    const absGap  = Math.abs(gap);
+    // NHL: determine relevance based on division top 3 + wild card race
+    if(league==='nhl') {
+      const myTeamData = conf[myIdx];
+      const myDiv = myTeamData[13];
+      const tDiv  = t[13];
+      const myDivRank = myTeamData[12];
+      const tDivRank  = t[12];
+      const myConfRank = myTeamData[11];
+      const tConfRank  = t[11];
 
-    // Teams so far ahead we can never catch = irrelevant for chasing
-    // Teams so far behind they can never catch us = irrelevant for defending
-    // But only filter if truly impossible (more than remaining games)
+      // Only relevant if:
+      // 1. Same division and both near the top 3 cutoff
+      // 2. Both in wild card race (conf rank 3-6 range fighting for WC spots)
+      const sameDivRace = myDiv === tDiv && (myDivRank <= 4 || tDivRank <= 4);
+      const wcRace = myConfRank > 3 && tConfRank > 3; // both outside div leaders fighting for WC
+      const chasingDiv = myDiv !== tDiv && tDivRank <= 3 && myConfRank <= 6; // we're chasing a div leader for WC
+      if(!sameDivRace && !wcRace && !chasingDiv) return;
+    }
+
+    // True games back
+    const myTeam = conf[myIdx];
+    const gap = league==='nhl'
+      ? myW - t[2]
+      : ((myTeam[2] - t[2]) + (t[3] - myTeam[3])) / 2;
+    const absGap = Math.abs(gap);
+
     const tRem = league==='nhl' ? t[6] : (t[4] || (82-t[2]-t[3]));
-    if(gap > 0 && gap > tRem) return;   // we're ahead by more than they have left
-    if(gap < 0 && absGap > myRem) return; // they're ahead by more than we have left
-    // Also skip teams with an insurmountable gap (more than 6 games this late)
+    if(gap > 0 && gap > tRem) return;
+    if(gap < 0 && absGap > myRem) return;
     if(absGap > 6) return;
 
     // Find their game tonight — not involving us
