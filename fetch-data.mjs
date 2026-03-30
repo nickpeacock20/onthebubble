@@ -70,14 +70,28 @@ async function main() {
   while (true) {
     page++;
     const url = `https://api.balldontlie.io/nba/v1/games?seasons[]=2025&per_page=100&postseason=false${cursor?'&cursor='+cursor:''}`;
-    const res  = await fetch(url, { headers: { Authorization: BDL_KEY } });
-    const text = await res.text();
+    
     let data;
-    try { data = JSON.parse(text); } catch(e) {
-      console.log('BDL raw response:', text.slice(0,200));
-      throw new Error('BDL returned non-JSON: ' + text.slice(0,100));
+    let attempts = 0;
+    while (attempts < 5) {
+      attempts++;
+      const res  = await fetch(url, { headers: { Authorization: BDL_KEY } });
+      const text = await res.text();
+      try { 
+        data = JSON.parse(text);
+        if (data.data) break; // success
+        // Got JSON but no data array — could be rate limit in JSON form
+        console.log(`  Attempt ${attempts} failed:`, JSON.stringify(data).slice(0,100));
+      } catch(e) {
+        console.log(`  Attempt ${attempts} rate limited, waiting 60s...`);
+        await new Promise(r => setTimeout(r, 60000));
+        continue;
+      }
+      console.log(`  Attempt ${attempts} got bad response, waiting 60s...`);
+      await new Promise(r => setTimeout(r, 60000));
     }
-    if (!data.data) { console.log('BDL error:', JSON.stringify(data)); break; }
+    
+    if (!data?.data) { console.log('BDL failed after 5 attempts, skipping H2H'); break; }
     console.log(`  Page ${page}: ${data.data.length} games`);
 
     for (const g of data.data) {
@@ -98,7 +112,7 @@ async function main() {
 
     cursor = data.meta?.next_cursor;
     if (!cursor) break;
-    await new Promise(r => setTimeout(r, 60000));
+    await new Promise(r => setTimeout(r, 5000));
   }
 
   const b2b = [...playingToday].filter(a => playedYesterday.has(a));
