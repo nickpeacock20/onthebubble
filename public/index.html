@@ -234,6 +234,8 @@ let MC_ODDS = { nba: null, nhl: null };
 let NBA_H2H = {};
 let NBA_B2B = new Set();
 
+const PROXY = 'https://corsproxy.io/?';
+
 const NBA_HEADERS = {
   'Origin':'https://www.nba.com',
   'Referer':'https://www.nba.com/',
@@ -241,6 +243,10 @@ const NBA_HEADERS = {
   'x-nba-stats-token':'true',
   'User-Agent':'Mozilla/5.0'
 };
+
+async function proxyFetch(url, opts={}) {
+  return fetch(PROXY + encodeURIComponent(url), opts);
+}
 
 const TEAM_COLORS = {
   ATL:'#E03A3E',BOS:'#007A33',BKN:'#444444',CHA:'#00788C',CHI:'#CE1141',
@@ -361,9 +367,9 @@ function runNHLMonteCarlo(east, west, remaining, b2b, N=5000) {
 
 async function fetchNBAData() {
   const [standingsRes, gamelogRes, scoreboardRes] = await Promise.all([
-    fetch('https://stats.nba.com/stats/leaguestandingsv3?LeagueID=00&Season=2025-26&SeasonType=Regular+Season', {headers:NBA_HEADERS}),
-    fetch('https://stats.nba.com/stats/leaguegamelog?Season=2025-26&SeasonType=Regular+Season&Direction=DESC&Sorter=DATE&Counter=1000', {headers:NBA_HEADERS}),
-    fetch('https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json'),
+    proxyFetch('https://stats.nba.com/stats/leaguestandingsv3?LeagueID=00&Season=2025-26&SeasonType=Regular+Season', {headers:NBA_HEADERS}),
+    proxyFetch('https://stats.nba.com/stats/leaguegamelog?Season=2025-26&SeasonType=Regular+Season&Direction=DESC&Sorter=DATE&Counter=1000', {headers:NBA_HEADERS}),
+    proxyFetch('https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json'),
   ]);
 
   const [standData, logData, scoreData] = await Promise.all([
@@ -463,8 +469,8 @@ async function fetchNBAData() {
 
 async function fetchNHLData() {
   const [standRes, scoreRes] = await Promise.all([
-    fetch('https://api-web.nhle.com/v1/standings/now'),
-    fetch('https://api-web.nhle.com/v1/scoreboard/now'),
+    proxyFetch('https://api-web.nhle.com/v1/standings/now'),
+    proxyFetch('https://api-web.nhle.com/v1/scoreboard/now'),
   ]);
   const [standData, scoreData] = await Promise.all([standRes.json(), scoreRes.json()]);
 
@@ -505,7 +511,7 @@ async function fetchNHLSchedule() {
   const end = '2026-04-17';
   let url = 'https://api-web.nhle.com/v1/schedule/now';
   while (url) {
-    const res = await fetch(url);
+    const res = await proxyFetch(url);
     const data = await res.json();
     for (const week of (data.gameWeek||[])) {
       if (week.date > end) break;
@@ -521,7 +527,7 @@ async function fetchNHLSchedule() {
 }
 
 async function fetchNBASchedule() {
-  const res = await fetch('https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json');
+  const res = await proxyFetch('https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json');
   const data = await res.json();
   const today = new Date().toISOString().split('T')[0];
   const games = [];
