@@ -98,7 +98,7 @@ async function main() {
 
     cursor = data.meta?.next_cursor;
     if (!cursor) break;
-    await new Promise(r => setTimeout(r, 10000));
+    await new Promise(r => setTimeout(r, 60000));
   }
 
   const b2b = [...playingToday].filter(a => playedYesterday.has(a));
