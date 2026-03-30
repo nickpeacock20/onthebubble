@@ -15,7 +15,7 @@ jobs:
       - name: Install deps
         run: npm install node-fetch
       - name: Run fetch script
-        run: node --input-type=module < fetch-data.js
+        run: node --input-type=module < fetch-data.mjs
       - name: Commit data.json
         run: |
           git config user.email "action@github.com"
