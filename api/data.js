@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   try {
-    const { kv } = await import('@vercel/kv');
+    const { kv } = await import('./kv.js');
 
     const [liveRaw, oddsRaw] = await Promise.all([
       kv.get('live_data'),

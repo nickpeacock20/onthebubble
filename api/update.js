@@ -396,7 +396,7 @@ export default async function handler(req, res) {
     };
 
     // Store in Vercel KV
-    const { kv } = await import('@vercel/kv');
+    const { kv } = await import('./kv.js');
     await kv.set('live_data', JSON.stringify(payload), { ex: 3600 }); // 1hr TTL
 
     console.log('[update] Done. NBA east:', nbaStandings.east.length, 'teams');

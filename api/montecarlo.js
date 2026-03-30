@@ -413,7 +413,7 @@ export default async function handler(req, res) {
   try {
     console.log('[montecarlo] Starting simulation:', new Date().toISOString());
 
-    const { kv } = await import('@vercel/kv');
+    const { kv } = await import('./kv.js');
 
     // Load current live data
     const raw = await kv.get('live_data');
