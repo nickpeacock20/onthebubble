@@ -1368,7 +1368,7 @@ function pick(abbr) {
     <div class="card">
       <div class="chdr">
         <span class="ctitle">Who to Cheer For Today</span>
-        <span class="csub">FRI MAR 27 · ${today.length} GAMES</span>
+        <span class="csub">${new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase()} · ${today.length} GAMES</span>
       </div>
       ${renderCheer(cheerItems)}
     </div>
