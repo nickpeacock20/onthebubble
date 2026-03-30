@@ -35,7 +35,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
 .sellbl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);white-space:nowrap}
 .tsel{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;padding:6px 12px;cursor:pointer;flex:1;max-width:280px}
 .tsel:focus{outline:none;border-color:var(--accent)}
-.livepill{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);white-space:nowrap}
+.livepill{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);white-space:nowrap;text-align:right}
 .livdot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.8s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 /* MAIN LAYOUT */
@@ -203,7 +203,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
     <button class="ltab" onclick="switchLeague('mlb')">MLB</button>
     <button class="ltab" onclick="switchLeague('nfl')">NFL</button>
   </nav>
-  <div class="livepill"><div class="livdot"></div>LIVE · MAR 29, 2026</div>
+  <div class="livepill"><div class="livdot"></div><div><div>LAST UPDATED MAR 29, 2026</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div></div>
 </header>
 
 <div class="selbar">
@@ -394,7 +394,7 @@ function runNHLMonteCarlo(east, west, remaining, h2h={}, N=5000) {
 async function fetchLiveData() {
   console.log('[live] Loading data.json...');
   const pill = document.querySelector('.livepill');
-  if (pill) pill.innerHTML = `<div class="livdot"></div>LOADING LIVE DATA...`;
+  if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LOADING LIVE DATA...</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
 
   try {
     const res  = await fetch('/data.json');
@@ -438,11 +438,11 @@ async function fetchLiveData() {
     console.log('[live] Done.');
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
-    if (pill) pill.innerHTML = `<div class="livdot"></div>LIVE · ${updated.toUpperCase()} ET`;
+    if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LAST UPDATED ${updated.toUpperCase()} ET</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
 
   } catch(err) {
     console.warn('[live] Could not load data.json:', err.message);
-    if (pill) pill.innerHTML = `<div class="livdot" style="background:var(--amber)"></div>CACHED DATA · RUN FETCH SCRIPT`;
+    if (pill) pill.innerHTML = `<div class="livdot" style="background:var(--amber)"></div><div><div>CACHED DATA</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
   }
 
   const sel = document.getElementById('tsel');
