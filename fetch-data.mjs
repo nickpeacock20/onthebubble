@@ -146,7 +146,9 @@ async function main() {
 
   const nbaRemaining = [];
   for (const d of schedData.leagueSchedule.gameDates) {
-    const gameDay = d.gameDate.substring(0, 10); // handle both date formats
+    // NBA CDN uses MM/DD/YYYY format — convert to YYYY-MM-DD for comparison
+    const parts = d.gameDate.split(' ')[0].split('/');
+    const gameDay = `${parts[2]}-${parts[0].padStart(2,'0')}-${parts[1].padStart(2,'0')}`;
     if (gameDay < today) continue;
     for (const g of d.games) {
       const home = g.homeTeam?.teamTricode, away = g.awayTeam?.teamTricode;
