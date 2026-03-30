@@ -302,7 +302,13 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
       else wins[g.away]++;
     }
     for (const conf of [east, west]) {
-      const sorted = [...conf].sort((a,b) => (wins[b[1]]-wins[a[1]]) || (a[3]-b[3]));
+      const sorted = [...conf].sort((a,b) => {
+        const wDiff = wins[b[1]] - wins[a[1]];
+        if (wDiff !== 0) return wDiff;
+        const aSimL = a[3] + (a[4] - (wins[a[1]] - a[2]));
+        const bSimL = b[3] + (b[4] - (wins[b[1]] - b[2]));
+        return aSimL - bSimL;
+      });
       sorted.slice(0,6).forEach(t => { counts[t[1]].top6++; counts[t[1]].mp++; });
       const pi = sorted.slice(6,10);
       pi.forEach(t => counts[t[1]].pi++);
@@ -1118,13 +1124,10 @@ function renderRace(conf, myAbbr, league) {
       if(rank===7&&!l6){html+=`<div class="divline autoline"></div>`;l6=true;}
       if(rank===11&&!l10){html+=`<div class="divline piline"></div>`;l10=true;}
     } else if(league==='wnba'&&rank===5&&!l6){html+=`<div class="divline autoline"></div>`;l6=true;}
-    const cutoffTeam=league==='nba'?conf[9]:conf[3];
-    // True games back = ((myW - theirW) + (theirL - myL)) / 2
-    const gb = league==='nba'
-      ? ((t[2]-cutoffTeam[2])+(cutoffTeam[3]-t[3]))/2
-      : t[2]-cutoffTeam[2]; // NHL uses points, no GB formula needed
-    const gbDisplay = gb===0?'LINE':gb>0?`+${gb%1===0?gb:gb.toFixed(1)}`:`${gb%1===0?gb:gb.toFixed(1)}`;
-    const gapColor=gb>0?'var(--green)':gb<0?'var(--red)':'var(--amber)';
+    const leader = conf[0];
+    const gb1 = ((leader[2]-t[2])+(t[3]-leader[3]))/2;
+    const gb1Display = gb1===0?'1st':`${gb1%1===0?gb1:gb1.toFixed(1)} GB`;
+    const gb1Color = gb1===0?'var(--green)':rank<=6?'var(--green)':rank<=10?'var(--amber)':'var(--red)';
     const sk=t[7]||'';
     html+=`<div class="rrow${you?' you':inPI?' pi':elim?' out':''}">
       <div class="rrank" style="color:${inAuto?'var(--green)':inPI?'var(--amber)':elim?'var(--red)':'var(--text2)'}">${rank}</div>
@@ -1135,9 +1138,8 @@ function renderRace(conf, myAbbr, league) {
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div class="rwins" style="color:${you?'var(--accent)':elim?'var(--text2)':'var(--text)'}">${t[2]}W</div>
-        ${elim?`<div class="rgap" style="color:var(--red)">ELIM</div>`:''}
-        ${!elim&&inAuto?`<div class="rgap" style="color:var(--green)">IN</div>`:''}
-        ${!elim&&!inAuto?`<div class="rgap" style="color:${gapColor}">${gbDisplay}</div>`:''}
+        ${elim?`<div class="rgap" style="color:var(--red)">ELIM</div>`:
+          `<div class="rgap" style="color:${gb1Color}">${gb1Display}</div>`}
       </div>
     </div>`;
   }
