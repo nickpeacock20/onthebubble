@@ -963,7 +963,7 @@ function renderProbs(odds, team, rank, league, conf) {
     const nhlClinched = team[10];
     const nhlConfRank = team[11];
     rows += probRow('% to Make the Playoffs',
-      nhlElim?'Mathematically eliminated':nhlClinched?'Clinched — in the playoffs':nhlConfRank<=8?'Currently in playoff picture':'Chasing wild card',
+      '',
       odds.mp, oc(odds.mp), 'pbar1');
     if(!nhlElim && !nhlClinched) {
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
