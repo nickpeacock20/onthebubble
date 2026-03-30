@@ -138,11 +138,18 @@ async function main() {
   ]);
   const [scoreData, schedData] = await Promise.all([scoreRes.json(), schedRes.json()]);
 
-  const nbaToday = (scoreData.scoreboard?.games||[]).map(g => {
-    const hw = g.homeTeam.teamWinProbability != null ? Math.round(g.homeTeam.teamWinProbability*100) : 50;
-    return { h: g.homeTeam.teamTricode, a: g.awayTeam.teamTricode, hw, aw: 100-hw,
-      t: g.gameEt ? new Date(g.gameEt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}) : g.gameStatusText };
-  });
+  const nbaToday = [];
+  for (const d of schedData.leagueSchedule.gameDates) {
+    const parts = d.gameDate.split(' ')[0].split('/');
+    const gameDay = `${parts[2]}-${parts[0].padStart(2,'0')}-${parts[1].padStart(2,'0')}`;
+    if (gameDay !== today) continue;
+    for (const g of d.games) {
+      const home = g.homeTeam?.teamTricode, away = g.awayTeam?.teamTricode;
+      const time = g.gameDateTimeEst ? new Date(g.gameDateTimeEst).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}) : '';
+      if (home && away) nbaToday.push({ h: home, a: away, hw: 50, aw: 50, t: time });
+    }
+    break;
+  }
 
   const nbaRemaining = [];
   for (const d of schedData.leagueSchedule.gameDates) {
@@ -187,7 +194,41 @@ async function main() {
     t:g.startTimeUTC?new Date(g.startTimeUTC).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}):''
   }));
 
-  // NHL remaining schedule
+  // NHL H2H from season results
+  console.log('Fetching NHL H2H...');
+  const nhlH2H = {};
+  let nhlSchedUrl = 'https://api-web.nhle.com/v1/schedule/2025-10-01';
+  const nhlEndDate = today;
+  while (nhlSchedUrl) {
+    try {
+      const nr = await fetch(nhlSchedUrl);
+      const nd = await nr.json();
+      for (const week of (nd.gameWeek||[])) {
+        if (week.date > nhlEndDate) { nhlSchedUrl = null; break; }
+        for (const g of (week.games||[])) {
+          if (g.gameType !== 2) continue;
+          if (g.gameState !== 'OFF' && g.gameState !== 'FINAL') continue;
+          const home = g.homeTeam?.abbrev;
+          const away = g.awayTeam?.abbrev;
+          const homeScore = g.homeTeam?.score;
+          const awayScore = g.awayTeam?.score;
+          if (!home || !away || homeScore == null || awayScore == null) continue;
+          const homeWon = homeScore > awayScore;
+          if (!nhlH2H[home]) nhlH2H[home] = {};
+          if (!nhlH2H[away]) nhlH2H[away] = {};
+          if (!nhlH2H[home][away]) nhlH2H[home][away] = { wins:0, games:0 };
+          if (!nhlH2H[away][home]) nhlH2H[away][home] = { wins:0, games:0 };
+          nhlH2H[home][away].games++; nhlH2H[away][home].games++;
+          if (homeWon) nhlH2H[home][away].wins++; else nhlH2H[away][home].wins++;
+        }
+      }
+      const next = nd.nextStartDate;
+      nhlSchedUrl = next && next <= nhlEndDate ? `https://api-web.nhle.com/v1/schedule/${next}` : null;
+    } catch(e) { nhlSchedUrl = null; }
+  }
+  console.log(`  NHL H2H built for ${Object.keys(nhlH2H).length} teams`);
+
+
   const nhlRemaining = [];
   const nhlPlayedYest = new Set(), nhlPlayingToday = new Set();
   const end = '2026-04-17';
@@ -214,7 +255,7 @@ async function main() {
   const payload = {
     updatedAt: new Date().toISOString(),
     nba: { east: nbaEast, west: nbaWest, today: nbaToday, remaining: nbaRemaining, h2h, b2b },
-    nhl: { east: nhlEast, west: nhlWest, today: nhlToday, remaining: nhlRemaining, b2b: nhlB2B }
+    nhl: { east: nhlEast, west: nhlWest, today: nhlToday, remaining: nhlRemaining, b2b: nhlB2B, h2h: nhlH2H }
   };
 
   fs.writeFileSync('data.json', JSON.stringify(payload));
