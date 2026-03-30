@@ -1,4 +1,22 @@
-- name: Commit data.json
+name: Fetch Data
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install deps
+        run: npm install node-fetch
+      - name: Run fetch script
+        run: node fetch-data.mjs
+      - name: Commit data.json
         run: |
           cp data.json public/data.json
           git config user.email "action@github.com"
