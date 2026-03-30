@@ -995,11 +995,11 @@ function probRow(lbl, sub, val, color, id) {
     <div class="ptrack"><div class="pfill" id="${id}" style="background:${color};width:0%"></div></div>
     ${id==='pbar1'?`<div class="winlose">
       <div class="wl" style="background:var(--gdim);border-color:rgba(0,230,118,.15)">
-        <div class="wll" style="color:var(--green)">If they win tonight</div>
+        <div class="wll" style="color:var(--green)">If they win next game</div>
         <div class="wlv" style="color:var(--green)">${winImpact}%</div>
       </div>
       <div class="wl" style="background:var(--rdim);border-color:rgba(255,68,68,.15)">
-        <div class="wll" style="color:var(--red)">If they lose tonight</div>
+        <div class="wll" style="color:var(--red)">If they lose next game</div>
         <div class="wlv" style="color:var(--red)">${lossImpact}%</div>
       </div>
     </div>`:''}
