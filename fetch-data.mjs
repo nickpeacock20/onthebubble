@@ -259,11 +259,67 @@ async function main() {
   const nhlB2B = [...nhlPlayingToday].filter(a => nhlPlayedYest.has(a));
   console.log(`  NHL: ${nhlEast.length+nhlWest.length} teams, ${nhlRemaining.length} remaining`);
 
-  // 5. Write data.json
+  // 5. The-Odds-API — real moneylines for today's NBA and NHL games
+  console.log('Fetching odds from The-Odds-API...');
+  const ODDS_KEY = 'dd3a99c81f025a04c8d85ad021d7fe78';
+  const oddsMap = {}; // key: "HOME-AWAY", value: {hw, aw}
+
+  function moneylineToProb(ml) {
+    return ml < 0 ? (-ml) / (-ml + 100) : 100 / (ml + 100);
+  }
+  function noVig(homeML, awayML) {
+    const h = moneylineToProb(homeML);
+    const a = moneylineToProb(awayML);
+    const total = h + a;
+    return { hw: Math.round(h/total*100), aw: Math.round(a/total*100) };
+  }
+
+  for (const sport of ['basketball_nba', 'icehockey_nhl']) {
+    try {
+      const res = await fetch(`https://api.the-odds-api.com/v4/sports/${sport}/odds/?apiKey=${ODDS_KEY}&regions=us&markets=h2h&oddsFormat=american`);
+      const games = await res.json();
+      for (const g of (games||[])) {
+        const book = g.bookmakers?.[0];
+        if (!book) continue;
+        const market = book.markets?.find(m=>m.key==='h2h');
+        if (!market) continue;
+        const home = market.outcomes.find(o=>o.name===g.home_team);
+        const away = market.outcomes.find(o=>o.name===g.away_team);
+        if (!home||!away) continue;
+        const probs = noVig(home.price, away.price);
+        // Store by team names — we'll match to abbr in the frontend
+        oddsMap[g.id] = { homeTeam: g.home_team, awayTeam: g.away_team, hw: probs.hw, aw: probs.aw };
+      }
+      console.log(`  ${sport}: ${games?.length||0} games with odds`);
+    } catch(e) { console.log(`  Odds fetch failed for ${sport}:`, e.message); }
+  }
+
+  // Match odds to today's games by team name fuzzy match
+  function applyOdds(todayGames, abbrToName) {
+    return todayGames.map(g => {
+      const homeName = abbrToName[g.h] || g.h;
+      const awayName = abbrToName[g.a] || g.a;
+      const match = Object.values(oddsMap).find(o =>
+        o.homeTeam.includes(homeName.split(' ').slice(-1)[0]) ||
+        homeName.includes(o.homeTeam.split(' ').slice(-1)[0])
+      );
+      if (match) return { ...g, hw: match.hw, aw: match.aw };
+      return g;
+    });
+  }
+
+  // Build abbr->lastName maps
+  const nbaNames = {}; [...nbaEast,...nbaWest].forEach(t => nbaNames[t[1]] = t[0]);
+  const nhlNames = {}; [...nhlEast,...nhlWest].forEach(t => nhlNames[t[1]] = t[0]);
+
+  const nbaOddsToday = applyOdds(nbaToday, nbaNames);
+  const nhlOddsToday = applyOdds(nhlToday, nhlNames);
+
+  // 6. Write data.json
   const payload = {
     updatedAt: new Date().toISOString(),
-    nba: { east: nbaEast, west: nbaWest, today: nbaToday, remaining: nbaRemaining, h2h, b2b },
-    nhl: { east: nhlEast, west: nhlWest, today: nhlToday, remaining: nhlRemaining, b2b: nhlB2B, h2h: nhlH2H }
+    nba: { east: nbaEast, west: nbaWest, today: nbaOddsToday, remaining: nbaRemaining, h2h, b2b },
+    nhl: { east: nhlEast, west: nhlWest, today: nhlOddsToday, remaining: nhlRemaining, b2b: nhlB2B, h2h: nhlH2H }
   };
 
   fs.writeFileSync('data.json', JSON.stringify(payload));
