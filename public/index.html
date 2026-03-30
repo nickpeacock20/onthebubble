@@ -302,13 +302,7 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
       else wins[g.away]++;
     }
     for (const conf of [east, west]) {
-      const sorted = [...conf].sort((a,b) => {
-        const wDiff = wins[b[1]] - wins[a[1]];
-        if (wDiff !== 0) return wDiff;
-        const aSimL = a[3] + (a[4] - (wins[a[1]] - a[2]));
-        const bSimL = b[3] + (b[4] - (wins[b[1]] - b[2]));
-        return aSimL - bSimL;
-      });
+      const sorted = [...conf].sort((a,b) => (wins[b[1]]-wins[a[1]]) || (a[3]-b[3]));
       sorted.slice(0,6).forEach(t => { counts[t[1]].top6++; counts[t[1]].mp++; });
       const pi = sorted.slice(6,10);
       pi.forEach(t => counts[t[1]].pi++);
@@ -406,8 +400,8 @@ async function fetchLiveData() {
 
     // Run Monte Carlo
     console.log('[live] Running Monte Carlo...');
-    MC_ODDS.nba = runNBAMonteCarlo(NBA.east, NBA.west, data.nba.remaining||[], nbaB2B, h2h, 5000);
-    MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, data.nhl.remaining||[], 5000);
+    MC_ODDS.nba = runNBAMonteCarlo(NBA.east, NBA.west, data.nba.remaining||[], nbaB2B, h2h, 20000);
+    MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, data.nhl.remaining||[], 20000);
     console.log('[live] Done.');
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
