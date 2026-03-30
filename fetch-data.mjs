@@ -146,10 +146,11 @@ async function main() {
 
   const nbaRemaining = [];
   for (const d of schedData.leagueSchedule.gameDates) {
-    if (d.gameDate < today) continue; // include today AND future games
+    const gameDay = d.gameDate.substring(0, 10); // handle both date formats
+    if (gameDay < today) continue;
     for (const g of d.games) {
       const home = g.homeTeam?.teamTricode, away = g.awayTeam?.teamTricode;
-      if (home && away) nbaRemaining.push({ home, away, date: d.gameDate });
+      if (home && away) nbaRemaining.push({ home, away, date: gameDay });
     }
   }
   console.log(`  ${nbaToday.length} games today, ${nbaRemaining.length} remaining`);
