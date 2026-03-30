@@ -359,14 +359,11 @@ function runNHLMonteCarlo(east, west, remaining, N=5000) {
 // ── NBA: ESPN STANDINGS ───────────────────────────────────────
 
 async function fetchNBAStandings() {
-  const [eastRes, westRes] = await Promise.all([
-    fetch('https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?group=conference&season=2026&type=0'),
-    fetch('https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?group=conference&season=2026&type=1'),
-  ]);
-  const [eastData, westData] = await Promise.all([eastRes.json(), westRes.json()]);
+  // ESPN standings — single call returns both conferences
+  const res = await fetch('https://site.api.espn.com/apis/v2/sports/basketball/nba/standings?season=2026');
+  const data = await res.json();
 
-  function parseConf(data) {
-    const entries = data.children?.[0]?.standings?.entries || data.standings?.entries || [];
+  function parseEntries(entries) {
     return entries.map(e => {
       const abbr        = e.team.abbreviation;
       const getStat     = n => e.stats.find(s => s.name === n)?.value ?? 0;
@@ -384,7 +381,11 @@ async function fetchNBAStandings() {
       return { abbr, w, l, rem: 82-w-l, diff, l10w, l10str, streak: streakDisp, clinched, home: homeR, road: roadR, name: e.team.displayName };
     });
   }
-  return { east: parseConf(eastData), west: parseConf(westData) };
+
+  // ESPN returns children array with East and West conferences
+  const east = parseEntries(data.children?.find(c => c.name?.includes('East'))?.standings?.entries || data.children?.[0]?.standings?.entries || []);
+  const west = parseEntries(data.children?.find(c => c.name?.includes('West'))?.standings?.entries || data.children?.[1]?.standings?.entries || []);
+  return { east, west };
 }
 
 // ── NBA: BALLDONTLIE H2H + B2B ────────────────────────────────
@@ -460,11 +461,19 @@ async function fetchNBAScoreboardAndSchedule() {
 // ── NHL DATA FETCHER ──────────────────────────────────────────
 
 async function fetchNHLData() {
-  const [standRes, scoreRes] = await Promise.all([
-    fetch('https://api-web.nhle.com/v1/standings/now'),
-    fetch('https://api-web.nhle.com/v1/scoreboard/now'),
-  ]);
-  const [standData, scoreData] = await Promise.all([standRes.json(), scoreRes.json()]);
+  // NHL API has CORS restrictions from some domains
+  // Try direct fetch first, fall back to cached data if blocked
+  let standData, scoreData;
+  try {
+    const [standRes, scoreRes] = await Promise.all([
+      fetch('https://api-web.nhle.com/v1/standings/now'),
+      fetch('https://api-web.nhle.com/v1/scoreboard/now'),
+    ]);
+    [standData, scoreData] = await Promise.all([standRes.json(), scoreRes.json()]);
+  } catch(e) {
+    console.warn('[live] NHL API blocked, using fallback NHL data');
+    return null; // Signal to use fallback
+  }
 
   const NHL_COLORS = {
     ANA:'#FC4C02',BUF:'#00B2A9',CAR:'#CC0000',CBJ:'#CE1126',CGY:'#C8102E',
@@ -560,9 +569,10 @@ async function fetchLiveData() {
     NBA.east  = nbaStand.east.sort((a,b)=>b.w-a.w||a.l-b.l).map(makeNBATeam);
     NBA.west  = nbaStand.west.sort((a,b)=>b.w-a.w||a.l-b.l).map(makeNBATeam);
     NBA.today = nbaScoreSched.today;
-    NHL.east  = nhlData.east;
-    NHL.west  = nhlData.west;
-    NHL.today = nhlData.todayGames;
+    NHL.east  = nhlData?.east  || NHL.east;
+    NHL.west  = nhlData?.west  || NHL.west;
+    NHL.today = nhlData?.todayGames || NHL.today;
+    const nhlRemaining = nhlData?.nhlRemaining || [];
 
     // Compute tonight's win probabilities using model
     const nbaTM = {}; [...NBA.east,...NBA.west].forEach(t => nbaTM[t[1]]=t);
@@ -585,7 +595,7 @@ async function fetchLiveData() {
     // Run Monte Carlo
     console.log('[live] Running Monte Carlo (5,000 runs)...');
     MC_ODDS.nba = runNBAMonteCarlo(NBA.east, NBA.west, nbaScoreSched.remaining, NBA_B2B, NBA_H2H, 5000);
-    MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, nhlData.nhlRemaining, 5000);
+    MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, nhlRemaining, 5000);
     console.log('[live] Monte Carlo complete.');
 
     const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
