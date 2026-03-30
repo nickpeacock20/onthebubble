@@ -372,17 +372,34 @@ function runNHLMonteCarlo(east, west, remaining, h2h={}, N=5000) {
     }
   }
   const odds = {};
+  // Find current playoff cutoff — 8th best record in conference
+  const confsSorted = [east, west].map(conf => {
+    const divs = {};
+    conf.forEach(t => { if(!divs[t[13]])divs[t[13]]=[]; divs[t[13]].push(t); });
+    const top3 = new Set(Object.values(divs).flatMap(d => [...d].sort((a,b)=>b[2]-a[2]).slice(0,3).map(t=>t[1])));
+    const wc = conf.filter(t=>!top3.has(t[1])).sort((a,b)=>b[2]-a[2]);
+    const cutoff = wc[1]?.[2] || 0; // 2nd wild card points
+    return { conf, cutoff, top3 };
+  });
+
   all.forEach(t => {
     const c = counts[t[1]];
-    const elim = t[9];
+    const hardElim = t[9];
     const clinched = t[10];
+
+    // Find this team's conference cutoff
+    const confData = confsSorted.find(cd => cd.conf.some(x => x[1]===t[1]));
+    const cutoff = confData?.cutoff || 0;
+    const maxPts = t[2] + (t[6] * 2); // max possible points (2 pts per game)
+    const mathElim = hardElim || maxPts < cutoff;
+
     const mp  = Math.round(c.mp/N*100);
     const div = Math.round(c.div/N*100);
     const wc  = Math.round(c.wc/N*100);
     odds[t[1]] = {
-      mp:  elim ? 0 : clinched ? 100 : Math.min(99, Math.max(1, mp)),
-      div: elim ? 0 : clinched==='div' ? 100 : Math.min(99, Math.max(0, div)),
-      wc:  Math.min(99, Math.max(0, wc)),
+      mp:  mathElim ? 0 : clinched ? 100 : Math.min(99, Math.max(1, mp)),
+      div: mathElim ? 0 : clinched==='div' ? 100 : Math.min(99, Math.max(0, div)),
+      wc:  mathElim ? 0 : Math.min(99, Math.max(0, wc)),
     };
   });
   return odds;
