@@ -274,8 +274,15 @@ function nbaWinProb(home, away, b2b, h2h) {
 
 // NHL win probability
 // team[15] = season goal differential rate
-function nhlWinProb(home, away, b2b) {
+// H2H: up to 25% weight based on games played between teams
+function nhlWinProb(home, away, b2b, h2h={}) {
   const pd = (home[15]||0) - (away[15]||0) + (b2b.has(away[1]) ? 0.20 : 0.15);
+  const hh = h2h[home[1]]?.[away[1]];
+  if (hh && hh.games > 0) {
+    const h2hWeight = Math.min(hh.games / 4, 0.25);
+    const anrWeight = 1 - h2hWeight;
+    return sigmoid(pd, 2.5) * anrWeight + (hh.wins / hh.games) * h2hWeight;
+  }
   return sigmoid(pd, 2.5);
 }
 
@@ -315,12 +322,28 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
   const odds = {};
   all.forEach(t => {
     const c = counts[t[1]];
-    odds[t[1]] = {mp:Math.round(c.mp/N*100),auto:Math.round(c.top6/N*100),pi:Math.round(c.pi/N*100),sp:Math.round(c.sp/N*100)};
+    const elim = t[9];
+    const clinched = t[10];
+    const cap = (val, isTop) => {
+      if (val === 0 && !elim) return 1;
+      if (val === 100 && !clinched) return 99;
+      return val;
+    };
+    const mp   = Math.round(c.mp/N*100);
+    const auto = Math.round(c.top6/N*100);
+    const pi   = Math.round(c.pi/N*100);
+    const sp   = Math.round(c.sp/N*100);
+    odds[t[1]] = {
+      mp:   elim ? 0 : clinched==='auto' ? 100 : Math.min(99, Math.max(1, mp)),
+      auto: elim ? 0 : clinched==='auto' ? 100 : Math.min(99, Math.max(mp>0?1:0, auto)),
+      pi:   Math.min(99, Math.max(0, pi)),
+      sp:   Math.min(99, Math.max(0, sp)),
+    };
   });
   return odds;
 }
 
-function runNHLMonteCarlo(east, west, remaining, N=5000) {
+function runNHLMonteCarlo(east, west, remaining, h2h={}, N=5000) {
   const all = [...east, ...west];
   const tm = {}; all.forEach(t => tm[t[1]] = t);
   const counts = {}; all.forEach(t => { counts[t[1]] = {mp:0,div:0,wc:0}; });
@@ -328,7 +351,7 @@ function runNHLMonteCarlo(east, west, remaining, N=5000) {
     const pts = {}; all.forEach(t => { pts[t[1]] = t[2]; });
     for (const g of remaining) {
       if (!tm[g.home] || !tm[g.away]) continue;
-      const wp = nhlWinProb(tm[g.home], tm[g.away], new Set());
+      const wp = nhlWinProb(tm[g.home], tm[g.away], new Set(), h2h);
       if (Math.random() < 0.23) {
         pts[g.home]++; pts[g.away]++;
         if (Math.random() < wp) pts[g.home]++; else pts[g.away]++;
@@ -351,7 +374,16 @@ function runNHLMonteCarlo(east, west, remaining, N=5000) {
   const odds = {};
   all.forEach(t => {
     const c = counts[t[1]];
-    odds[t[1]] = {mp:Math.round(c.mp/N*100),div:Math.round(c.div/N*100),wc:Math.round(c.wc/N*100)};
+    const elim = t[9];
+    const clinched = t[10];
+    const mp  = Math.round(c.mp/N*100);
+    const div = Math.round(c.div/N*100);
+    const wc  = Math.round(c.wc/N*100);
+    odds[t[1]] = {
+      mp:  elim ? 0 : clinched ? 100 : Math.min(99, Math.max(1, mp)),
+      div: elim ? 0 : clinched==='div' ? 100 : Math.min(99, Math.max(0, div)),
+      wc:  Math.min(99, Math.max(0, wc)),
+    };
   });
   return odds;
 }
@@ -390,18 +422,19 @@ async function fetchLiveData() {
       return {...g, hw, aw: 100-hw};
     });
 
+    const nhlH2H = data.nhl.h2h || {};
     const nhlTM = {}; [...NHL.east,...NHL.west].forEach(t => nhlTM[t[1]]=t);
     NHL.today = NHL.today.map(g => {
       const home=nhlTM[g.h], away=nhlTM[g.a];
       if (!home||!away) return g;
-      const hw = Math.round(nhlWinProb(home, away, nhlB2B) * 100);
+      const hw = Math.round(nhlWinProb(home, away, nhlB2B, nhlH2H) * 100);
       return {...g, hw, aw: 100-hw};
     });
 
     // Run Monte Carlo
     console.log('[live] Running Monte Carlo...');
     MC_ODDS.nba = runNBAMonteCarlo(NBA.east, NBA.west, data.nba.remaining||[], nbaB2B, h2h, 20000);
-    MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, data.nhl.remaining||[], 20000);
+    MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, data.nhl.remaining||[], nhlH2H, 20000);
     console.log('[live] Done.');
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
