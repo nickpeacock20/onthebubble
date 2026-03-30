@@ -281,7 +281,6 @@ function nhlWinProb(home, away, b2b) {
 
 function simulatePlayIn(s7, s8, s9, s10, b2b, h2h) {
   const p7 = nbaWinProb(s7, s8, b2b, h2h);
-  const p7 = nbaWinProb(s7, s8, b2b, h2h);
   const g1w = Math.random() < p7 ? s7 : s8;
   const g1l = g1w === s7 ? s8 : s7;
   const p9 = nbaWinProb(s9, s10, b2b, h2h);
