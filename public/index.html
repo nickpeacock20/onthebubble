@@ -438,7 +438,7 @@ async function fetchLiveData() {
     console.log('[live] Done.');
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
-    if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LAST UPDATED ${updated.toUpperCase()} ET</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
+    if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LAST UPDATED ${updated.toUpperCase()}</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
 
   } catch(err) {
     console.warn('[live] Could not load data.json:', err.message);
@@ -982,7 +982,7 @@ function renderCheer(items) {
         <span class="cico">${item.ico}</span>
         <div class="cmatch">
           <div class="cmatchup">${hasGame?`${item.away} @ ${item.home}`:item.matchup}</div>
-          <div class="ctime">${item.time}${item.time!=='No game'?' ET':''}</div>
+          <div class="ctime">${item.time!=='No game'?item.time:item.time}</div>
         </div>
         <span class="ctag">${item.tag}</span>
       </div>
