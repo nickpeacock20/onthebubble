@@ -997,7 +997,7 @@ function renderCheer(items) {
         <span class="cico">${item.ico}</span>
         <div class="cmatch">
           <div class="cmatchup">${hasGame?`${item.away} @ ${item.home}`:item.matchup}</div>
-          <div class="ctime">${item.time!=='No game'?item.time:item.time}</div>
+          <div class="ctime">${item.time==='No game'?'OFF NIGHT':''}</div>
         </div>
         <span class="ctag">${item.tag}</span>
       </div>
