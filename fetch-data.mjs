@@ -145,8 +145,16 @@ async function main() {
     if (gameDay !== today) continue;
     for (const g of d.games) {
       const home = g.homeTeam?.teamTricode, away = g.awayTeam?.teamTricode;
-      const time = g.gameDateTimeEst ? new Date(g.gameDateTimeEst).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}) : '';
-      if (home && away) nbaToday.push({ h: home, a: away, hw: 50, aw: 50, t: time });
+      let time = '';
+      // Try gameDateTimeEst first, then gameEt, then gameTimeEst
+      const rawTime = g.gameDateTimeEst || g.gameEt || g.gameTimeEst || '';
+      if (rawTime) {
+        try {
+          time = new Date(rawTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
+          if (time === 'Invalid Date') time = '';
+        } catch(e) { time = ''; }
+      }
+      if (home && away) nbaToday.push({ h: home, a: away, hw: 50, aw: 50, t: '' });
     }
     break;
   }
