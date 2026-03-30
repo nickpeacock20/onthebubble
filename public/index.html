@@ -322,22 +322,23 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
   const odds = {};
   all.forEach(t => {
     const c = counts[t[1]];
-    const elim = t[9];
+    const hardElim = t[9];
     const clinched = t[10];
-    const cap = (val, isTop) => {
-      if (val === 0 && !elim) return 1;
-      if (val === 100 && !clinched) return 99;
-      return val;
-    };
+    // Find conference cutoff (10th seed wins = play-in cutoff)
+    const confTeams = east.includes(t) ? east : west;
+    const cutoff = confTeams[9]?.[2] || 0;
+    const maxWins = t[2] + t[4];
+    const mathElim = hardElim || maxWins < cutoff;
+
     const mp   = Math.round(c.mp/N*100);
     const auto = Math.round(c.top6/N*100);
     const pi   = Math.round(c.pi/N*100);
     const sp   = Math.round(c.sp/N*100);
     odds[t[1]] = {
-      mp:   elim ? 0 : clinched==='auto' ? 100 : Math.min(99, Math.max(1, mp)),
-      auto: elim ? 0 : clinched==='auto' ? 100 : Math.min(99, Math.max(mp>0?1:0, auto)),
-      pi:   Math.min(99, Math.max(0, pi)),
-      sp:   Math.min(99, Math.max(0, sp)),
+      mp:   mathElim ? 0 : clinched==='auto' ? 100 : Math.min(99, Math.max(1, mp)),
+      auto: mathElim ? 0 : clinched==='auto' ? 100 : Math.min(99, Math.max(mp>0?1:0, auto)),
+      pi:   mathElim ? 0 : Math.min(99, Math.max(0, pi)),
+      sp:   mathElim ? 0 : Math.min(99, Math.max(0, sp)),
     };
   });
   return odds;
