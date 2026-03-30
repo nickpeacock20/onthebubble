@@ -986,8 +986,8 @@ function renderProbs(odds, team, rank, league, conf) {
 }
 
 function probRow(lbl, sub, val, color, id) {
-  const winImpact = val===100?100:val===0?0:Math.min(98, val+5);
-  const lossImpact = val===100?100:val===0?0:Math.max(1, val-8);
+  const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+5));
+  const lossImpact = val===100?100:val===0?0:Math.max(1, Math.min(val, val-8));
   return `<div class="prow">
     <div class="plbl">${lbl}</div>
     <div class="psub">${sub}</div>
