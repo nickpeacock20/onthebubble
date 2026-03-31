@@ -231,6 +231,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
 // ============================================================
 
 let MC_ODDS = { nba: null, nhl: null };
+let PLAYIN_SP = {}; // stores exact sp% from play-in bracket simulation
 let DATA = {}; // raw data.json payload
 let NBA_H2H = {}; // { abbr: { abbr: { wins, games } } }
 let NBA_B2B = new Set(); // teams playing tonight on a back-to-back
@@ -489,27 +490,6 @@ async function fetchLiveData() {
     MC_ODDS.nba = runNBAMonteCarlo(NBA.east, NBA.west, data.nba.remaining||[], nbaB2B, h2h, 20000);
     MC_ODDS.nhl = runNHLMonteCarlo(NHL.east, NHL.west, data.nhl.remaining||[], nhlH2H, 20000);
 
-    // Patch play-in sp% with accurate simulation for both conferences
-    for (const conf of [NBA.east, NBA.west]) {
-      const s7=conf[6],s8=conf[7],s9=conf[8],s10=conf[9];
-      if (!s7||!s8||!s9||!s10) continue;
-      let r7=0,r8=0,r9=0,r10=0;
-      const PN = 10000;
-      for (let i=0; i<PN; i++) {
-        const g1win7 = Math.random() < nbaWinProb(s7, s8, nbaB2B, h2h);
-        const g1loser = g1win7 ? s8 : s7;
-        const g2win9 = Math.random() < nbaWinProb(s9, s10, nbaB2B, h2h);
-        const g2winner = g2win9 ? s9 : s10;
-        const g3winLoser = Math.random() < nbaWinProb(g1loser, g2winner, nbaB2B, h2h);
-        const seed8 = g3winLoser ? g1loser : g2winner;
-        if (g1win7) r7++; else r8++;
-        if (seed8===s7) r7++; else if (seed8===s8) r8++; else if (seed8===s9) r9++; else r10++;
-      }
-      if (MC_ODDS.nba[s7[1]]) MC_ODDS.nba[s7[1]].sp = Math.round(r7/PN*100);
-      if (MC_ODDS.nba[s8[1]]) MC_ODDS.nba[s8[1]].sp = Math.round(r8/PN*100);
-      if (MC_ODDS.nba[s9[1]]) MC_ODDS.nba[s9[1]].sp = Math.round(r9/PN*100);
-      if (MC_ODDS.nba[s10[1]]) MC_ODDS.nba[s10[1]].sp = Math.round(r10/PN*100);
-    }
     console.log('[live] Done.');
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
@@ -1129,9 +1109,10 @@ function renderProbs(odds, team, rank, league, conf) {
       
       if(rank>=7 && rank<=10) {
         rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+        const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
         rows += probRow('% to Survive Play-In Tournament',
           rank===7?'1 win needed — best path':rank===8?'Win G1 or survive G3':'Must win 2 consecutive games',
-          odds.sp, 'var(--purple)', 'pbar4');
+          spVal, 'var(--purple)', 'pbar4');
       }
       // Win/loss impact only for the main bar
     }
@@ -1392,6 +1373,7 @@ function renderPlayIn(conf, myAbbr) {
   const sp8  = Math.round(r8/N*100);
   const sp9  = Math.round(r9/N*100);
   const sp10 = Math.round(r10/N*100);
+  PLAYIN_SP[s7[1]]=sp7; PLAYIN_SP[s8[1]]=sp8; PLAYIN_SP[s9[1]]=sp9; PLAYIN_SP[s10[1]]=sp10;
 
   let pathHTML='';  // Paths removed — keeping play-in bracket clean
 
@@ -1757,7 +1739,7 @@ function pick(abbr) {
     if(b1) b1.style.width=odds.mp+'%';
     if(b2) b2.style.width=(league==='nba'?odds.auto:league==='nhl'?odds.div:odds.mp)+'%';
     if(b3) b3.style.width=(league==='nba'?odds.pi:league==='nhl'?odds.wc:0)+'%';
-    if(b4) b4.style.width=(odds.sp||0)+'%';
+    if(b4) b4.style.width=(PLAYIN_SP[found[1]] ?? (odds.sp||0))+'%';
   },100);
 }
 
