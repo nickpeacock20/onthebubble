@@ -777,9 +777,9 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     const absGap = Math.abs(gap);
 
     const tRem = league==='nhl' ? t[6] : (t[4] || (82-t[2]-t[3]));
-    if(gap > 0 && gap > tRem) return;
-    if(gap < 0 && absGap > myRem) return;
-    if(absGap > 6) return;
+    if(gap > 0 && gap > tRem*2) return;
+    if(gap < 0 && absGap > myRem*2) return;
+    if(absGap > (league==='nhl' ? 10 : 6)) return;
 
     // Find their game tonight — not involving us
     const g = todayGames.find(g2 =>
@@ -833,7 +833,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     }
   });
 
-  return items.slice(0, 5);
+  return items.slice(0, 8);
 }
 
 // ============================================================
@@ -897,10 +897,9 @@ function getRecapItems(teamAbbr, conf, rank, yesterdayGames, league) {
       ? myW - t[2]
       : ((myTeam[2]-t[2])+(t[3]-myTeam[3]))/2;
     const absGap = Math.abs(gap);
-    const tRem = league==='nhl' ? t[6] : (t[4]||(82-t[2]-t[3]));
-    if (gap>0 && gap>tRem) return;
-    if (gap<0 && absGap>myRem) return;
-    if (absGap>6) return;
+    if (gap>0 && gap>tRem*2) return;
+    if (gap<0 && absGap>myRem*2) return;
+    if (absGap > (league==='nhl' ? 10 : 6)) return;
 
     const g = yesterdayGames.find(g2 =>
       (g2.h===t[1]||g2.a===t[1]) &&
@@ -942,7 +941,7 @@ function getRecapItems(teamAbbr, conf, rank, yesterdayGames, league) {
     }
   });
 
-  return items.slice(0, 5);
+  return items.slice(0, 8);
 }
 
 function renderRecap(items) {
