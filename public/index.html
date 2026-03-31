@@ -492,6 +492,28 @@ async function fetchLiveData() {
 
     console.log('[live] Done.');
 
+    // Pre-calculate play-in sp% for both conferences
+    for (const conf of [NBA.east, NBA.west]) {
+      const s7=conf[6],s8=conf[7],s9=conf[8],s10=conf[9];
+      if (!s7||!s8||!s9||!s10) continue;
+      let r7=0,r8=0,r9=0,r10=0;
+      const PN = 10000;
+      for (let i=0; i<PN; i++) {
+        const g1win7 = Math.random() < nbaWinProb(s7, s8, nbaB2B, h2h);
+        const g1loser = g1win7 ? s8 : s7;
+        const g2win9 = Math.random() < nbaWinProb(s9, s10, nbaB2B, h2h);
+        const g2winner = g2win9 ? s9 : s10;
+        const g3winLoser = Math.random() < nbaWinProb(g1loser, g2winner, nbaB2B, h2h);
+        const seed8 = g3winLoser ? g1loser : g2winner;
+        if (g1win7) r7++; else r8++;
+        if (seed8===s7) r7++; else if (seed8===s8) r8++; else if (seed8===s9) r9++; else r10++;
+      }
+      PLAYIN_SP[s7[1]]=Math.round(r7/PN*100);
+      PLAYIN_SP[s8[1]]=Math.round(r8/PN*100);
+      PLAYIN_SP[s9[1]]=Math.round(r9/PN*100);
+      PLAYIN_SP[s10[1]]=Math.round(r10/PN*100);
+    }
+
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
     if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LAST UPDATED ${updated.toUpperCase()}</div><div style="font-size:8px;opacity:0.6">Data updates by 10 AM every morning</div></div>`;
 
@@ -1356,24 +1378,10 @@ function renderPlayIn(conf, myAbbr) {
 
   // Simulate play-in 10000 times to get accurate survival %
   const h2h = NBA_H2H;
-  let r7=0,r8=0,r9=0,r10=0;
-  const N = 10000;
-  for (let i=0; i<N; i++) {
-    const g1win7 = Math.random() < nbaWinProb(s7, s8, NBA_B2B, h2h);
-    const seed7  = g1win7 ? s7 : s8;
-    const g1loser = g1win7 ? s8 : s7;
-    const g2win9 = Math.random() < nbaWinProb(s9, s10, NBA_B2B, h2h);
-    const g2winner = g2win9 ? s9 : s10;
-    const g3winLoser = Math.random() < nbaWinProb(g1loser, g2winner, NBA_B2B, h2h);
-    const seed8 = g3winLoser ? g1loser : g2winner;
-    if (seed7===s7) r7++; else r8++;
-    if (seed8===s7) r7++; else if (seed8===s8) r8++; else if (seed8===s9) r9++; else r10++;
-  }
-  const sp7  = Math.round(r7/N*100);
-  const sp8  = Math.round(r8/N*100);
-  const sp9  = Math.round(r9/N*100);
-  const sp10 = Math.round(r10/N*100);
-  PLAYIN_SP[s7[1]]=sp7; PLAYIN_SP[s8[1]]=sp8; PLAYIN_SP[s9[1]]=sp9; PLAYIN_SP[s10[1]]=sp10;
+  const sp7  = PLAYIN_SP[s7[1]] ?? 0;
+  const sp8  = PLAYIN_SP[s8[1]] ?? 0;
+  const sp9  = PLAYIN_SP[s9[1]] ?? 0;
+  const sp10 = PLAYIN_SP[s10[1]] ?? 0;
 
   let pathHTML='';  // Paths removed — keeping play-in bracket clean
 
