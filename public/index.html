@@ -347,8 +347,19 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
       auto: mathElim ? 0 : clinched==='auto' ? 100 : Math.min(99, Math.max(mp>0?1:0, auto)),
       pi:   mathElim ? 0 : Math.min(99, Math.max(0, pi)),
       sp:   mathElim ? 0 : Math.min(99, Math.max(0, sp)),
+      _rank: confTeams.indexOf(t) + 1,
     };
   });
+
+  // Enforce seed order on play-in survival % — 7 > 8 > 9 > 10
+  for (const conf of [east, west]) {
+    const pi = conf.slice(6,10).map(t => t[1]).filter(a => odds[a]);
+    if (pi.length === 4) {
+      const spVals = pi.map(a => odds[a].sp).sort((a,b) => b-a);
+      pi.forEach((a,i) => { odds[a].sp = spVals[i]; odds[a].mp = Math.max(odds[a].auto + odds[a].sp * 0.85 / 100, odds[a].mp); });
+    }
+  }
+
   return odds;
 }
 
@@ -1340,6 +1351,26 @@ function renderPlayIn(conf, myAbbr) {
   const o7=nbaOdds(s7,7,conf),o8=nbaOdds(s8,8,conf);
   const o9=nbaOdds(s9,9,conf),o10=nbaOdds(s10,10,conf);
 
+  // Calculate play-in survival % directly from game structure
+  // Game 1: s7 vs s8. Winner = 7 seed. Loser → Game 3.
+  // Game 2: s9 vs s10. Winner → Game 3. Loser = eliminated.
+  // Game 3: G1 loser vs G2 winner. Winner = 8 seed.
+  const h2h = NBA_H2H;
+  const p78 = nbaWinProb(s7, s8, NBA_B2B, h2h); // P(s7 wins game1)
+  const p910 = nbaWinProb(s9, s10, NBA_B2B, h2h); // P(s9 wins game2)
+  // Game 3 possibilities: s8 vs s9, s8 vs s10, s7 vs s9, s7 vs s10
+  const p_s8_vs_s9  = nbaWinProb(s8, s9, NBA_B2B, h2h);
+  const p_s8_vs_s10 = nbaWinProb(s8, s10, NBA_B2B, h2h);
+  const p_s7_vs_s9  = nbaWinProb(s7, s9, NBA_B2B, h2h); // if s7 lost game1... wait s7 can't lose and play s9 - wrong
+  // Correct game 3: loser of game1 vs winner of game2
+  // s7 loses (prob 1-p78): s7 vs s9 winner or s10 winner
+  // s8 loses (prob p78): s8 vs s9 winner or s10 winner
+
+  const sp7  = Math.round(p78 * 100); // s7 just needs to win game1
+  const sp8  = Math.round((1-p78) * (p910 * p_s8_vs_s9 + (1-p910) * p_s8_vs_s10) * 100); // s8 loses g1, then beats g2 winner
+  const sp9  = Math.round(p910 * ((1-p78) * (1-p_s8_vs_s9) + p78 * (1 - nbaWinProb(s7, s9, NBA_B2B, h2h))) * 100); // s9 wins g2, beats g3 opponent  
+  const sp10 = Math.round((1-p910) * ((1-p78) * (1-p_s8_vs_s10) + p78 * (1 - nbaWinProb(s7, s10, NBA_B2B, h2h))) * 100); // s10 wins g2, beats g3 opponent
+
   let pathHTML='';  // Paths removed — keeping play-in bracket clean
 
   return `<div class="piwrap">
@@ -1348,14 +1379,14 @@ function renderPlayIn(conf, myAbbr) {
         <span class="pigamelbl-left" style="color:var(--green)">Game 1 — Winner = 7-seed</span>
         <span class="pigamelbl-right">Loser → Game 3</span>
       </div>
-      ${gameRow(s7,7,o7.sp)}${gameRow(s8,8,o8.sp)}
+      ${gameRow(s7,7,sp7)}${gameRow(s8,8,sp8)}
     </div>
     <div class="pigame${[s9[1],s10[1]].includes(myAbbr)?' hl':''}">
       <div class="pigamelbl">
         <span class="pigamelbl-left" style="color:var(--amber)">Game 2 — Winner survives</span>
         <span class="pigamelbl-right">Loser eliminated</span>
       </div>
-      ${gameRow(s9,9,o9.sp)}${gameRow(s10,10,o10.sp)}
+      ${gameRow(s9,9,sp9)}${gameRow(s10,10,sp10)}
     </div>
     <div class="pigame tbd">
       <div class="pigamelbl">
