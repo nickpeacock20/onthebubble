@@ -64,8 +64,21 @@ async function main() {
 
   const eastEntries = espnData.children?.find(c => c.name?.includes('East'))?.standings?.entries || espnData.children?.[0]?.standings?.entries || [];
   const westEntries = espnData.children?.find(c => c.name?.includes('West'))?.standings?.entries || espnData.children?.[1]?.standings?.entries || [];
-  const nbaEast = parseESPN(eastEntries).sort((a,b) => b[2]-a[2] || a[3]-b[3]);
-  const nbaWest = parseESPN(westEntries).sort((a,b) => b[2]-a[2] || a[3]-b[3]);
+  const nbaEast = parseESPN(eastEntries).sort((a,b) => {
+    if (b[2] !== a[2]) return b[2]-a[2]; // wins
+    if (a[3] !== b[3]) return a[3]-b[3]; // losses
+    // H2H tiebreaker
+    const h2hab = h2h[a[1]]?.[b[1]];
+    if (h2hab && h2hab.games > 0) return (h2hab.wins/h2hab.games) < 0.5 ? 1 : -1;
+    return 0;
+  });
+  const nbaWest = parseESPN(westEntries).sort((a,b) => {
+    if (b[2] !== a[2]) return b[2]-a[2];
+    if (a[3] !== b[3]) return a[3]-b[3];
+    const h2hab = h2h[a[1]]?.[b[1]];
+    if (h2hab && h2hab.games > 0) return (h2hab.wins/h2hab.games) < 0.5 ? 1 : -1;
+    return 0;
+  });
   console.log(`  East: ${nbaEast.length} teams, West: ${nbaWest.length} teams`);
 
   // 2. BallDontLie — H2H + B2B
@@ -233,13 +246,13 @@ async function main() {
   const nhlH2H = {};
   const nhlYesterdayMap = {};
   let nhlSchedUrl = 'https://api-web.nhle.com/v1/schedule/2025-10-01';
-  const nhlEndDate = yesterday; // go up to and including yesterday
+  const nhlEndDate = today;
   while (nhlSchedUrl) {
     try {
       const nr = await fetch(nhlSchedUrl);
       const nd = await nr.json();
       for (const week of (nd.gameWeek||[])) {
-        if (week.date > today) { nhlSchedUrl = null; break; }
+        if (week.date > nhlEndDate) { nhlSchedUrl = null; break; }
         for (const g of (week.games||[])) {
           if (g.gameType !== 2) continue;
           if (g.gameState !== 'OFF' && g.gameState !== 'FINAL') continue;
@@ -255,18 +268,30 @@ async function main() {
           if (!nhlH2H[away][home]) nhlH2H[away][home] = { wins:0, games:0 };
           nhlH2H[home][away].games++; nhlH2H[away][home].games++;
           if (homeWon) nhlH2H[home][away].wins++; else nhlH2H[away][home].wins++;
-          if (week.date === yesterday) {
-            nhlYesterdayMap[`${home}-${away}`] = { h: home, a: away, winner: homeWon ? home : away };
-          }
         }
       }
       const next = nd.nextStartDate;
-      nhlSchedUrl = next && next <= today ? `https://api-web.nhle.com/v1/schedule/${next}` : null;
+      nhlSchedUrl = next && next <= nhlEndDate ? `https://api-web.nhle.com/v1/schedule/${next}` : null;
     } catch(e) { nhlSchedUrl = null; }
   }
-  const nhlYesterday = Object.values(nhlYesterdayMap);
   console.log(`  NHL H2H built for ${Object.keys(nhlH2H).length} teams`);
-  console.log(`  NHL yesterday (from H2H loop): ${nhlYesterday.length} games`);
+
+  // NHL yesterday using the score endpoint
+  const nhlYesterday = [];
+  try {
+    const nyRes = await fetch(`https://api-web.nhle.com/v1/score/${yesterday}`);
+    const nyData = await nyRes.json();
+    for (const g of (nyData.games||[])) {
+      if (g.gameType !== 2) continue;
+      const home = g.homeTeam?.abbrev;
+      const away = g.awayTeam?.abbrev;
+      const homeScore = g.homeTeam?.score;
+      const awayScore = g.awayTeam?.score;
+      if (!home || !away || homeScore == null || awayScore == null) continue;
+      nhlYesterday.push({ h: home, a: away, winner: homeScore > awayScore ? home : away });
+    }
+    console.log(`  NHL yesterday: ${nhlYesterday.length} games`);
+  } catch(e) { console.log('  NHL yesterday fetch failed:', e.message); }
 
 
   const nhlRemaining = [];
