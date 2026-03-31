@@ -897,6 +897,7 @@ function getRecapItems(teamAbbr, conf, rank, yesterdayGames, league) {
       ? myW - t[2]
       : ((myTeam[2]-t[2])+(t[3]-myTeam[3]))/2;
     const absGap = Math.abs(gap);
+    const tRem = league==='nhl' ? t[6] : (t[4]||(82-t[2]-t[3]));
     if (gap>0 && gap>tRem*2) return;
     if (gap<0 && absGap>myRem*2) return;
     if (absGap > (league==='nhl' ? 10 : 6)) return;
