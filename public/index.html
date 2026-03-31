@@ -261,12 +261,12 @@ function sigmoid(x, d) { return 1 / (1 + Math.exp(-x / d)); }
 // NBA win probability
 // team[5] = season point differential (net rating from ESPN)
 // B2B: if away team on back-to-back, home gets +3.0 instead of +2.5
-// H2H: up to 25% weight based on games played between teams
+// H2H: up to 40% weight based on games played between teams
 function nbaWinProb(home, away, b2b, h2h) {
   const pd = home[5] - away[5] + (b2b.has(away[1]) ? 3.0 : 2.5);
   const hh = h2h[home[1]]?.[away[1]];
   if (hh && hh.games > 0) {
-    const h2hWeight = Math.min(hh.games / 4, 0.25);
+    const h2hWeight = Math.min(hh.games / 4, 0.40);
     const anrWeight = 1 - h2hWeight;
     return sigmoid(pd, 7) * anrWeight + (hh.wins / hh.games) * h2hWeight;
   }
@@ -322,7 +322,7 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
       const pi = sorted.slice(6,10);
       pi.forEach(t => counts[t[1]].pi++);
       if (pi.length===4) {
-        const winners = simulatePlayIn(pi[0],pi[1],pi[2],pi[3], new Set(), h2h);
+        const winners = simulatePlayIn(pi[0],pi[1],pi[2],pi[3], b2b, h2h);
         pi.forEach(t => { if(winners.has(t[1])){counts[t[1]].sp++;counts[t[1]].mp++;} });
       }
     }
