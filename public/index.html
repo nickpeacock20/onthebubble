@@ -1582,8 +1582,6 @@ function pick(abbr) {
           `:`<div class="s3v" style="color:${odds.mp>60?'var(--green)':odds.mp>30?'var(--amber)':'var(--red)'}">${league==='nhl'?found[2]+'pts':odds.mp+'%'}</div><div class="s3l">${league==='nhl'?'Total Points':'Make Playoffs'}</div>`}
         </div>
       </div>
-
-      ${renderProbs(odds,found,rank,league,conf)}
     </div>
 
     <!-- WHO TO CHEER FOR TODAY -->
@@ -1603,6 +1601,8 @@ function pick(abbr) {
       </div>
       ${renderRecap(recapItems)}
     </div>
+
+      ${renderProbs(odds,found,rank,league,conf)}
 
     <!-- FULL PLAYOFF BRACKET -->
     <div class="card">
