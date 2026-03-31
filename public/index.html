@@ -369,7 +369,8 @@ function runNHLMonteCarlo(east, west, remaining, h2h={}, N=5000) {
       }
     }
     for (const conf of [east, west]) {
-      const sorted = [...conf].sort((a,b) => (pts[b[1]]-pts[a[1]]) || (b[2]-a[2]));
+      const simWins = {}; conf.forEach(t => { simWins[t[1]] = t[3] + Math.floor((pts[t[1]] - t[2]) / 2); });
+      const sorted = [...conf].sort((a,b) => (pts[b[1]]-pts[a[1]]) || (simWins[b[1]]-simWins[a[1]]));
       const divs = {}; sorted.forEach(t => { if(!divs[t[13]])divs[t[13]]=[]; divs[t[13]].push(t[1]); });
       const top3 = new Set(Object.values(divs).flatMap(d => d.slice(0,3)));
       const wc = sorted.filter(t => !top3.has(t[1])).slice(0,2).map(t => t[1]);
