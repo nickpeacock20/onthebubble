@@ -441,6 +441,17 @@ async function fetchLiveData() {
     const nbaB2B = new Set(data.nba.b2b || []);
     const nhlB2B = new Set(data.nhl.b2b || []);
 
+    // Re-sort NBA standings with H2H tiebreaker
+    const nbaSort = (a,b) => {
+      if (b[2] !== a[2]) return b[2]-a[2];
+      if (a[3] !== b[3]) return a[3]-b[3];
+      const hab = h2h[a[1]]?.[b[1]];
+      if (hab && hab.games > 0) return (hab.wins/hab.games) < 0.5 ? 1 : -1;
+      return 0;
+    };
+    NBA.east.sort(nbaSort);
+    NBA.west.sort(nbaSort);
+
     // Compute tonight win probs
     const nbaTM = {}; [...NBA.east,...NBA.west].forEach(t => nbaTM[t[1]]=t);
     NBA.today = NBA.today.map(g => {
