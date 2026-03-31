@@ -231,6 +231,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
 // ============================================================
 
 let MC_ODDS = { nba: null, nhl: null };
+let DATA = {}; // raw data.json payload
 let NBA_H2H = {}; // { abbr: { abbr: { wins, games } } }
 let NBA_B2B = new Set(); // teams playing tonight on a back-to-back
 let NHL_B2B = new Set();
@@ -418,6 +419,7 @@ async function fetchLiveData() {
     const res  = await fetch('/data.json');
     if (!res.ok) throw new Error(`data.json not found (${res.status})`);
     const data = await res.json();
+    DATA = data;
 
     NBA.east  = data.nba.east;
     NBA.west  = data.nba.west;
@@ -835,8 +837,129 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
 }
 
 // ============================================================
-// STORY ENGINE — generated from real data, no guessing
+// YESTERDAY'S RECAP ENGINE
 // ============================================================
+function getRecapItems(teamAbbr, conf, rank, yesterdayGames, league) {
+  const items = [];
+  const myIdx = rank - 1;
+  const myW   = conf[myIdx][2];
+  const myRem = league==='nhl' ? conf[myIdx][6] : (conf[myIdx][4] || (82 - conf[myIdx][2] - conf[myIdx][3]));
+
+  // My own game yesterday
+  const myGame = yesterdayGames.find(g => g.h===teamAbbr || g.a===teamAbbr);
+  if (myGame) {
+    const iWon = myGame.winner === teamAbbr;
+    const opp  = myGame.h===teamAbbr ? myGame.a : myGame.h;
+    items.push({
+      good: iWon,
+      ico: iWon ? '✅' : '❌',
+      matchup: `${myGame.a} @ ${myGame.h}`,
+      tag: 'YOUR GAME',
+      body: iWon
+        ? `You beat <strong>${opp}</strong> — good result.`
+        : `You lost to <strong>${opp}</strong> — tough loss.`
+    });
+  } else {
+    items.push({
+      good: null,
+      ico: '💤',
+      matchup: 'OFF DAY',
+      tag: 'NO GAME',
+      body: `You had no game yesterday.`
+    });
+  }
+
+  // Rival games yesterday — same logic as cheer section
+  const shownGames = new Set();
+  conf.forEach(t => {
+    if (t[1] === teamAbbr) return;
+    if (t[9]) return;
+
+    if (league==='nba') {
+      const tMax = t[2] + (t[4] || (82-t[2]-t[3]));
+      const playinCutoff = conf[9][2];
+      if (tMax < playinCutoff) return;
+    }
+
+    if (league==='nhl') {
+      const myTeamData = conf[myIdx];
+      const myDiv = myTeamData[13], tDiv = t[13];
+      const myDivRank = myTeamData[12], tDivRank = t[12];
+      const myConfRank = myTeamData[11], tConfRank = t[11];
+      const sameDivRace = myDiv===tDiv && (myDivRank<=4||tDivRank<=4);
+      const wcRace = myConfRank>3 && tConfRank>3;
+      const chasingDiv = myDiv!==tDiv && tDivRank<=3 && myConfRank<=6;
+      if (!sameDivRace && !wcRace && !chasingDiv) return;
+    }
+
+    const myTeam = conf[myIdx];
+    const gap = league==='nhl'
+      ? myW - t[2]
+      : ((myTeam[2]-t[2])+(t[3]-myTeam[3]))/2;
+    const absGap = Math.abs(gap);
+    const tRem = league==='nhl' ? t[6] : (t[4]||(82-t[2]-t[3]));
+    if (gap>0 && gap>tRem) return;
+    if (gap<0 && absGap>myRem) return;
+    if (absGap>6) return;
+
+    const g = yesterdayGames.find(g2 =>
+      (g2.h===t[1]||g2.a===t[1]) &&
+      g2.h!==teamAbbr && g2.a!==teamAbbr
+    );
+    if (!g) return;
+
+    const gameKey = `${g.h}-${g.a}`;
+    if (shownGames.has(gameKey)) return;
+    shownGames.add(gameKey);
+
+    const rv  = t[1];
+    const opp = g.h===rv ? g.a : g.h;
+    const units = absGap===1?'win':(league==='nhl'?'pts':'wins');
+    const rvLost = g.winner !== rv;
+
+    if (gap <= 0) {
+      // rv is ahead — we wanted them to lose
+      items.push({
+        good: rvLost,
+        ico: rvLost ? '✅' : '❌',
+        matchup: `${g.a} @ ${g.h}`,
+        tag: rvLost ? `GOOD RESULT` : `BAD RESULT`,
+        body: rvLost
+          ? `<strong>${rv}</strong> lost to <strong>${opp}</strong> — exactly what you needed. They're ${absGap} ${units} ahead of you.`
+          : `<strong>${rv}</strong> beat <strong>${opp}</strong> — bad news. They're ${absGap} ${units} ahead of you.`
+      });
+    } else {
+      // rv is behind — we wanted them to lose to protect our spot
+      items.push({
+        good: rvLost,
+        ico: rvLost ? '✅' : '❌',
+        matchup: `${g.a} @ ${g.h}`,
+        tag: rvLost ? `SPOT PROTECTED` : `WATCH OUT`,
+        body: rvLost
+          ? `<strong>${rv}</strong> lost to <strong>${opp}</strong> — good, they stay ${absGap} ${units} behind you.`
+          : `<strong>${rv}</strong> beat <strong>${opp}</strong> — they're closing in, now ${absGap} ${units} behind you.`
+      });
+    }
+  });
+
+  return items.slice(0, 5);
+}
+
+function renderRecap(items) {
+  if (!items.length) return '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">No recap available.</div>';
+  return items.map(item => `
+    <div class="ccard" style="border-left:3px solid ${item.good===true?'var(--green)':item.good===false?'var(--red)':'var(--border)'}">
+      <div class="ctop">
+        <span class="cico">${item.ico}</span>
+        <div class="cmid">
+          <div class="cmatchup">${item.matchup}</div>
+          <div class="ctag" style="color:${item.good===true?'var(--green)':item.good===false?'var(--red)':'var(--text3)'}">${item.tag}</div>
+        </div>
+      </div>
+      <div class="cbody">${item.body}</div>
+    </div>
+  `).join('');
+}
 function getStory(team, rank, conf, odds, league) {
   const name = team[0];
   // Safely extract streak — always at index 7 for NBA/NHL, WNBA has no streak
@@ -1310,7 +1433,9 @@ function pick(abbr) {
   else odds=wnbaOdds(found,rank,conf);
 
   const today = league==='nba'?NBA.today:league==='nhl'?NHL.today:WNBA.today;
+  const yesterday = league==='nba'?(DATA.nba?.yesterday||[]):league==='nhl'?(DATA.nhl?.yesterday||[]):[];
   const cheerItems = getCheerItems(abbr,conf,rank,today,league);
+  const recapItems = getRecapItems(abbr,conf,rank,yesterday,league);
   const story = getStory(found,rank,conf,odds,league);
   const urgColors={'green':'var(--green)','amber':'var(--amber)','red':'var(--red)','dim':'var(--text3)'};
   const urgColor = urgColors[story.urg]||'var(--blue)';
@@ -1404,6 +1529,15 @@ function pick(abbr) {
         <span class="csub">${new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase()}</span>
       </div>
       ${renderCheer(cheerItems)}
+    </div>
+
+    <!-- YESTERDAY'S RECAP -->
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">Yesterday's Recap</span>
+        <span class="csub">${new Date(Date.now()-86400000).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase()}</span>
+      </div>
+      ${renderRecap(recapItems)}
     </div>
 
     <!-- FULL PLAYOFF BRACKET -->
