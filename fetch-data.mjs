@@ -231,6 +231,7 @@ async function main() {
   // NHL H2H from season results
   console.log('Fetching NHL H2H...');
   const nhlH2H = {};
+  const nhlYesterdayMap = {}; // key: "HOME-AWAY", value: winner
   let nhlSchedUrl = 'https://api-web.nhle.com/v1/schedule/2025-10-01';
   const nhlEndDate = today;
   while (nhlSchedUrl) {
@@ -254,13 +255,19 @@ async function main() {
           if (!nhlH2H[away][home]) nhlH2H[away][home] = { wins:0, games:0 };
           nhlH2H[home][away].games++; nhlH2H[away][home].games++;
           if (homeWon) nhlH2H[home][away].wins++; else nhlH2H[away][home].wins++;
+          // Capture yesterday's results
+          if (week.date === yesterday) {
+            nhlYesterdayMap[`${home}-${away}`] = { h: home, a: away, winner: homeWon ? home : away };
+          }
         }
       }
       const next = nd.nextStartDate;
       nhlSchedUrl = next && next <= nhlEndDate ? `https://api-web.nhle.com/v1/schedule/${next}` : null;
     } catch(e) { nhlSchedUrl = null; }
   }
+  const nhlYesterday = Object.values(nhlYesterdayMap);
   console.log(`  NHL H2H built for ${Object.keys(nhlH2H).length} teams`);
+  console.log(`  NHL yesterday (from H2H loop): ${nhlYesterday.length} games`);
 
 
   const nhlRemaining = [];
@@ -284,24 +291,6 @@ async function main() {
   }
   const nhlB2B = [...nhlPlayingToday].filter(a => nhlPlayedYest.has(a));
   console.log(`  NHL: ${nhlEast.length+nhlWest.length} teams, ${nhlRemaining.length} remaining`);
-
-  // NHL yesterday results — use the scores endpoint for complete results
-  const nhlYesterday = [];
-  try {
-    const nyRes = await fetch(`https://api-web.nhle.com/v1/score/${yesterday}`);
-    const nyData = await nyRes.json();
-    for (const g of (nyData.games||[])) {
-      if (g.gameType !== 2) continue;
-      const home = g.homeTeam?.abbrev;
-      const away = g.awayTeam?.abbrev;
-      const homeScore = g.homeTeam?.score;
-      const awayScore = g.awayTeam?.score;
-      if (!home || !away || homeScore == null || awayScore == null) continue;
-      const winner = homeScore > awayScore ? home : away;
-      nhlYesterday.push({ h: home, a: away, winner });
-    }
-    console.log(`  NHL yesterday: ${nhlYesterday.length} final games`);
-  } catch(e) { console.log('  NHL yesterday fetch failed:', e.message); }
 
   // 5. The-Odds-API — real moneylines for today's NBA and NHL games
   console.log('Fetching odds from The-Odds-API...');
