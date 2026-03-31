@@ -284,14 +284,14 @@ function nhlWinProb(home, away, b2b, h2h={}) {
   const awayL10 = (away[16]||0);
   const pctDiff = (homePct - awayPct) * 4; // scale to meaningful range
   const l10Diff = (homeL10 - awayL10) * 0.1;
-  const pd = pctDiff * 0.8 + l10Diff * 0.2 + (b2b.has(away[1]) ? 0.20 : 0.15);
+  const pd = pctDiff * 0.8 + l10Diff * 0.2 + (b2b.has(away[1]) ? 0.15 : 0.10);
   const hh = h2h[home[1]]?.[away[1]];
   if (hh && hh.games > 0) {
     const h2hWeight = Math.min(hh.games / 4, 0.25);
     const anrWeight = 1 - h2hWeight;
     return sigmoid(pd, 2.5) * anrWeight + (hh.wins / hh.games) * h2hWeight;
   }
-  return sigmoid(pd, 2.5);
+  return sigmoid(pd, 1.0);
 }
 
 function simulatePlayIn(s7, s8, s9, s10, b2b, h2h) {
