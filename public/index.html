@@ -274,10 +274,17 @@ function nbaWinProb(home, away, b2b, h2h) {
 }
 
 // NHL win probability
-// team[15] = season goal differential rate
-// H2H: up to 25% weight based on games played between teams
+// Uses points percentage as base predictor (more directly tied to standings)
+// team[2]=pts, team[3]=w, team[4]=l, team[5]=otl, team[6]=rem
+// Blends points pct (70%) + L10 GD (30%) for recent form
 function nhlWinProb(home, away, b2b, h2h={}) {
-  const pd = (home[15]||0) - (away[15]||0) + (b2b.has(away[1]) ? 0.20 : 0.15);
+  const homePct = home[2] / ((home[3]+home[4]+home[5]+home[6]) * 2 || 1);
+  const awayPct = away[2] / ((away[3]+away[4]+away[5]+away[6]) * 2 || 1);
+  const homeL10 = (home[16]||0);
+  const awayL10 = (away[16]||0);
+  const pctDiff = (homePct - awayPct) * 4; // scale to meaningful range
+  const l10Diff = (homeL10 - awayL10) * 0.1;
+  const pd = pctDiff * 0.8 + l10Diff * 0.2 + (b2b.has(away[1]) ? 0.20 : 0.15);
   const hh = h2h[home[1]]?.[away[1]];
   if (hh && hh.games > 0) {
     const h2hWeight = Math.min(hh.games / 4, 0.25);
@@ -1109,8 +1116,8 @@ function renderProbs(odds, team, rank, league, conf) {
 }
 
 function probRow(lbl, sub, val, color, id) {
-  const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+5));
-  const lossImpact = val===100?100:val===0?0:Math.max(1, Math.min(val, val-8));
+  const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+8));
+  const lossImpact = val===100?100:val===0?0:Math.max(1, Math.min(val, val-15));
   return `<div class="prow">
     <div class="plbl">${lbl}</div>
     <div class="psub">${sub}</div>
@@ -1191,24 +1198,66 @@ function renderBracket(conf, confName, myAbbr, league) {
     return html;
   }
   if(league==='nhl') {
-    // Top 8 in conference make playoffs — sort by confRank (index 11)
-    const inPlayoffs = conf.filter(t => t[11]<=8 && !t[9]).sort((a,b)=>a[11]-b[11]);
-    const pairs = [[0,7],[1,6],[2,5],[3,4]];
+    // NHL proper seeding:
+    // Get divisions in this conference
+    const divNames = [...new Set(conf.map(t=>t[13]))];
+    
+    // Top 3 per division, sorted by points (with tiebreakers: pts, wins, otl)
+    const divTeams = {};
+    divNames.forEach(div => {
+      divTeams[div] = conf.filter(t=>t[13]===div)
+        .sort((a,b) => b[2]-a[2] || b[3]-a[3] || a[5]-b[5])
+        .slice(0,3);
+    });
+    
+    // Division winners = #1 from each division, sorted by points
+    const divWinners = divNames.map(div => divTeams[div][0])
+      .sort((a,b) => b[2]-a[2] || b[3]-a[3]);
+    const d1 = divWinners[0]; // best division winner
+    const d2 = divWinners[1]; // other division winner
+    
+    // Wild card: best 2 non-top-3 teams by points
+    const top3Abbrs = new Set(divNames.flatMap(div => divTeams[div].map(t=>t[1])));
+    const wcTeams = conf.filter(t=>!top3Abbrs.has(t[1]))
+      .sort((a,b) => b[2]-a[2] || b[3]-a[3])
+      .slice(0,2);
+    const wc1 = wcTeams[0];
+    const wc2 = wcTeams[1];
+    
+    // Division 2nd and 3rd place
+    const d1div = divWinners[0][13];
+    const d2div = divWinners[1][13];
+    const d1s2 = divTeams[d1div][1];
+    const d1s3 = divTeams[d1div][2];
+    const d2s2 = divTeams[d2div][1];
+    const d2s3 = divTeams[d2div][2];
+
+    // Matchups:
+    // D1 (best div winner) vs WC2 (lower WC)
+    // D2 (other div winner) vs WC1 (higher WC)
+    // D1's 2nd vs D1's 3rd
+    // D2's 2nd vs D2's 3rd
+    const matchups = [
+      [d1, 'D1', wc2, 'WC2'],
+      [d2, 'D2', wc1, 'WC1'],
+      [d1s2, `${d1div.split(' ')[0]} 2`, d1s3, `${d1div.split(' ')[0]} 3`],
+      [d2s2, `${d2div.split(' ')[0]} 2`, d2s3, `${d2div.split(' ')[0]} 3`],
+    ];
+
     let html = `<div class="bconf">
       <div class="bconflbl">${confName} — First Round (if playoffs started today)</div>
       <div class="bmatches">`;
-    pairs.forEach(([ai,bi]) => {
-      const ta = inPlayoffs[ai], tb = inPlayoffs[bi];
+    matchups.forEach(([ta, sa, tb, sb]) => {
       if(!ta||!tb) return;
       const youIn = ta[1]===myAbbr||tb[1]===myAbbr;
       html += `<div class="bmatch${youIn?' youin':''}">
         <div class="bteam${ta[1]===myAbbr?' highlight':''}">
-          <span class="bseed">${ai+1}</span>
+          <span class="bseed">${sa}</span>
           <span class="bname" style="color:${ta[1]===myAbbr?'var(--accent)':ta[8]}">${ta[0].split(' ').slice(-1)[0]}</span>
           <span class="brec">${ta[2]}pts</span>
         </div>
         <div class="bteam${tb[1]===myAbbr?' highlight':''}">
-          <span class="bseed">${bi+1}</span>
+          <span class="bseed">${sb}</span>
           <span class="bname" style="color:${tb[1]===myAbbr?'var(--accent)':tb[8]}">${tb[0].split(' ').slice(-1)[0]}</span>
           <span class="brec">${tb[2]}pts</span>
         </div>
