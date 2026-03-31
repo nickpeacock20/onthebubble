@@ -1615,7 +1615,7 @@ function pick(abbr) {
       </div>
 
       <div class="stats3">
-        <div class="s3"><div class="s3v" style="color:${color}">#${rank}</div><div class="s3l">Conf Rank</div></div>
+        <div class="s3"><div class="s3v" style="color:${color}">#${league==='nhl'?found[12]:rank}</div><div class="s3l">${league==='nhl'?'Div Rank':'Conf Rank'}</div></div>
         <div class="s3">
           <div class="s3v" style="color:${league==='nba'?(found[6]>=7?'var(--green)':found[6]<=3?'var(--red)':'var(--amber)'):'var(--text)'}">
             ${league==='nba'?found[11]:league==='nhl'?found[14]:`${w}-${l}`}
