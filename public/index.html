@@ -1351,25 +1351,25 @@ function renderPlayIn(conf, myAbbr) {
   const o7=nbaOdds(s7,7,conf),o8=nbaOdds(s8,8,conf);
   const o9=nbaOdds(s9,9,conf),o10=nbaOdds(s10,10,conf);
 
-  // Calculate play-in survival % directly from game structure
-  // Game 1: s7 vs s8. Winner = 7 seed. Loser → Game 3.
-  // Game 2: s9 vs s10. Winner → Game 3. Loser = eliminated.
-  // Game 3: G1 loser vs G2 winner. Winner = 8 seed.
+  // Simulate play-in 10000 times to get accurate survival %
   const h2h = NBA_H2H;
-  const p78 = nbaWinProb(s7, s8, NBA_B2B, h2h); // P(s7 wins game1)
-  const p910 = nbaWinProb(s9, s10, NBA_B2B, h2h); // P(s9 wins game2)
-  // Game 3 possibilities: s8 vs s9, s8 vs s10, s7 vs s9, s7 vs s10
-  const p_s8_vs_s9  = nbaWinProb(s8, s9, NBA_B2B, h2h);
-  const p_s8_vs_s10 = nbaWinProb(s8, s10, NBA_B2B, h2h);
-  const p_s7_vs_s9  = nbaWinProb(s7, s9, NBA_B2B, h2h); // if s7 lost game1... wait s7 can't lose and play s9 - wrong
-  // Correct game 3: loser of game1 vs winner of game2
-  // s7 loses (prob 1-p78): s7 vs s9 winner or s10 winner
-  // s8 loses (prob p78): s8 vs s9 winner or s10 winner
-
-  const sp7  = Math.round(p78 * 100); // s7 just needs to win game1
-  const sp8  = Math.round((1-p78) * (p910 * p_s8_vs_s9 + (1-p910) * p_s8_vs_s10) * 100); // s8 loses g1, then beats g2 winner
-  const sp9  = Math.round(p910 * ((1-p78) * (1-p_s8_vs_s9) + p78 * (1 - nbaWinProb(s7, s9, NBA_B2B, h2h))) * 100); // s9 wins g2, beats g3 opponent  
-  const sp10 = Math.round((1-p910) * ((1-p78) * (1-p_s8_vs_s10) + p78 * (1 - nbaWinProb(s7, s10, NBA_B2B, h2h))) * 100); // s10 wins g2, beats g3 opponent
+  let r7=0,r8=0,r9=0,r10=0;
+  const N = 10000;
+  for (let i=0; i<N; i++) {
+    const g1win7 = Math.random() < nbaWinProb(s7, s8, NBA_B2B, h2h);
+    const seed7  = g1win7 ? s7 : s8;
+    const g1loser = g1win7 ? s8 : s7;
+    const g2win9 = Math.random() < nbaWinProb(s9, s10, NBA_B2B, h2h);
+    const g2winner = g2win9 ? s9 : s10;
+    const g3winLoser = Math.random() < nbaWinProb(g1loser, g2winner, NBA_B2B, h2h);
+    const seed8 = g3winLoser ? g1loser : g2winner;
+    if (seed7===s7) r7++; else r8++;
+    if (seed8===s7) r7++; else if (seed8===s8) r8++; else if (seed8===s9) r9++; else r10++;
+  }
+  const sp7  = Math.round(r7/N*100);
+  const sp8  = Math.round(r8/N*100);
+  const sp9  = Math.round(r9/N*100);
+  const sp10 = Math.round(r10/N*100);
 
   let pathHTML='';  // Paths removed — keeping play-in bracket clean
 
