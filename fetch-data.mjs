@@ -294,7 +294,7 @@ async function main() {
       if (week.date !== yesterday) continue;
       for (const g of (week.games||[])) {
         if (g.gameType !== 2) continue;
-        if (g.gameState !== 'OFF' && g.gameState !== 'FINAL') continue;
+        if (!g.homeTeam?.score && g.homeTeam?.score !== 0) continue;
         const home = g.homeTeam?.abbrev;
         const away = g.awayTeam?.abbrev;
         const homeScore = g.homeTeam?.score;
