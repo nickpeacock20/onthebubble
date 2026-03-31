@@ -291,7 +291,7 @@ function nhlWinProb(home, away, b2b, h2h={}) {
     const anrWeight = 1 - h2hWeight;
     return sigmoid(pd, 2.5) * anrWeight + (hh.wins / hh.games) * h2hWeight;
   }
-  return sigmoid(pd, 1.0);
+  return sigmoid(pd, 2.5);
 }
 
 function simulatePlayIn(s7, s8, s9, s10, b2b, h2h) {
@@ -362,8 +362,9 @@ function runNHLMonteCarlo(east, west, remaining, h2h={}, N=5000) {
       if (!tm[g.home] || !tm[g.away]) continue;
       const wp = nhlWinProb(tm[g.home], tm[g.away], new Set(), h2h);
       if (Math.random() < 0.23) {
+        // OT/SO — both get 1 pt, winner decided closer to 50/50
         pts[g.home]++; pts[g.away]++;
-        if (Math.random() < wp) pts[g.home]++; else pts[g.away]++;
+        if (Math.random() < 0.5 + (wp - 0.5) * 0.3) pts[g.home]++; else pts[g.away]++;
       } else {
         if (Math.random() < wp) pts[g.home]+=2; else pts[g.away]+=2;
       }
@@ -1238,11 +1239,24 @@ function renderBracket(conf, confName, myAbbr, league) {
     // D2 (other div winner) vs WC1 (higher WC)
     // D1's 2nd vs D1's 3rd
     // D2's 2nd vs D2's 3rd
+    // Determine division abbreviations
+    const divAbbr = {};
+    divNames.forEach(div => {
+      if (div.includes('Atlantic')) divAbbr[div] = 'A';
+      else if (div.includes('Metropolitan')) divAbbr[div] = 'M';
+      else if (div.includes('Central')) divAbbr[div] = 'C';
+      else if (div.includes('Pacific')) divAbbr[div] = 'P';
+      else divAbbr[div] = div[0];
+    });
+
+    const d1a = divAbbr[d1div];
+    const d2a = divAbbr[d2div];
+
     const matchups = [
-      [d1, 'D1', wc2, 'WC2'],
-      [d2, 'D2', wc1, 'WC1'],
-      [d1s2, `${d1div.split(' ')[0]} 2`, d1s3, `${d1div.split(' ')[0]} 3`],
-      [d2s2, `${d2div.split(' ')[0]} 2`, d2s3, `${d2div.split(' ')[0]} 3`],
+      [d1, `${d1a}1`, wc2, 'WC2'],
+      [d2, `${d2a}1`, wc1, 'WC1'],
+      [d1s2, `${d1a}2`, d1s3, `${d1a}3`],
+      [d2s2, `${d2a}2`, d2s3, `${d2a}3`],
     ];
 
     let html = `<div class="bconf">
