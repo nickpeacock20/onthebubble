@@ -212,10 +212,21 @@ async function main() {
   const nhlEast = nhlStandData.standings.filter(t=>t.conferenceName==='Eastern').sort((a,b)=>b.points-a.points).map(makeNHLTeam);
   const nhlWest = nhlStandData.standings.filter(t=>t.conferenceName==='Western').sort((a,b)=>b.points-a.points).map(makeNHLTeam);
 
-  const nhlToday = (nhlScoreData.gamesByDate?.[0]?.games||[]).map(g => ({
-    h:g.homeTeam?.abbrev||'', a:g.awayTeam?.abbrev||'', hw:50, aw:50,
-    t:g.startTimeUTC?new Date(g.startTimeUTC).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}):''
-  }));
+  const nhlToday = [];
+  // Pull today's NHL games from the schedule (more reliable than scoreboard)
+  try {
+    const nhlTodayRes = await fetch(`https://api-web.nhle.com/v1/schedule/${today}`);
+    const nhlTodayData = await nhlTodayRes.json();
+    for (const week of (nhlTodayData.gameWeek||[])) {
+      if (week.date !== today) continue;
+      for (const g of (week.games||[])) {
+        if (g.gameType !== 2) continue;
+        const h = g.homeTeam?.abbrev, a = g.awayTeam?.abbrev;
+        if (h && a) nhlToday.push({ h, a, hw: 50, aw: 50, t: '' });
+      }
+    }
+    console.log(`  NHL today: ${nhlToday.length} games`);
+  } catch(e) { console.log('  NHL today fetch failed:', e.message); }
 
   // NHL H2H from season results
   console.log('Fetching NHL H2H...');
