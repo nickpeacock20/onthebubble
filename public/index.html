@@ -203,7 +203,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
     <button class="ltab" onclick="switchLeague('mlb')">MLB</button>
     <button class="ltab" onclick="switchLeague('nfl')">NFL</button>
   </nav>
-  <div class="livepill"><div class="livdot"></div><div><div>LAST UPDATED MAR 29, 2026</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div></div>
+  <div class="livepill"><div class="livdot"></div><div><div>LAST UPDATED MAR 29, 2026</div><div style="font-size:8px;opacity:0.6">Data updates by 10 AM every morning</div></div></div>
 </header>
 
 <div class="selbar">
@@ -412,7 +412,7 @@ function runNHLMonteCarlo(east, west, remaining, h2h={}, N=5000) {
 async function fetchLiveData() {
   console.log('[live] Loading data.json...');
   const pill = document.querySelector('.livepill');
-  if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LOADING LIVE DATA...</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
+  if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LOADING LIVE DATA...</div><div style="font-size:8px;opacity:0.6">Data updates by 10 AM every morning</div></div>`;
 
   try {
     const res  = await fetch('/data.json');
@@ -456,11 +456,11 @@ async function fetchLiveData() {
     console.log('[live] Done.');
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
-    if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LAST UPDATED ${updated.toUpperCase()}</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
+    if (pill) pill.innerHTML = `<div class="livdot"></div><div><div>LAST UPDATED ${updated.toUpperCase()}</div><div style="font-size:8px;opacity:0.6">Data updates by 10 AM every morning</div></div>`;
 
   } catch(err) {
     console.warn('[live] Could not load data.json:', err.message);
-    if (pill) pill.innerHTML = `<div class="livdot" style="background:var(--amber)"></div><div><div>CACHED DATA</div><div style="font-size:8px;opacity:0.6">Data updates at 3 AM every night</div></div>`;
+    if (pill) pill.innerHTML = `<div class="livdot" style="background:var(--amber)"></div><div><div>CACHED DATA</div><div style="font-size:8px;opacity:0.6">Data updates by 10 AM every morning</div></div>`;
   }
 
   const sel = document.getElementById('tsel');
