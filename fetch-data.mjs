@@ -231,15 +231,15 @@ async function main() {
   // NHL H2H from season results
   console.log('Fetching NHL H2H...');
   const nhlH2H = {};
-  const nhlYesterdayMap = {}; // key: "HOME-AWAY", value: winner
+  const nhlYesterdayMap = {};
   let nhlSchedUrl = 'https://api-web.nhle.com/v1/schedule/2025-10-01';
-  const nhlEndDate = today;
+  const nhlEndDate = yesterday; // go up to and including yesterday
   while (nhlSchedUrl) {
     try {
       const nr = await fetch(nhlSchedUrl);
       const nd = await nr.json();
       for (const week of (nd.gameWeek||[])) {
-        if (week.date > nhlEndDate) { nhlSchedUrl = null; break; }
+        if (week.date > today) { nhlSchedUrl = null; break; }
         for (const g of (week.games||[])) {
           if (g.gameType !== 2) continue;
           if (g.gameState !== 'OFF' && g.gameState !== 'FINAL') continue;
@@ -255,14 +255,13 @@ async function main() {
           if (!nhlH2H[away][home]) nhlH2H[away][home] = { wins:0, games:0 };
           nhlH2H[home][away].games++; nhlH2H[away][home].games++;
           if (homeWon) nhlH2H[home][away].wins++; else nhlH2H[away][home].wins++;
-          // Capture yesterday's results
           if (week.date === yesterday) {
             nhlYesterdayMap[`${home}-${away}`] = { h: home, a: away, winner: homeWon ? home : away };
           }
         }
       }
       const next = nd.nextStartDate;
-      nhlSchedUrl = next && next <= nhlEndDate ? `https://api-web.nhle.com/v1/schedule/${next}` : null;
+      nhlSchedUrl = next && next <= today ? `https://api-web.nhle.com/v1/schedule/${next}` : null;
     } catch(e) { nhlSchedUrl = null; }
   }
   const nhlYesterday = Object.values(nhlYesterdayMap);
