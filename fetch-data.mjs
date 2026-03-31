@@ -285,24 +285,20 @@ async function main() {
   const nhlB2B = [...nhlPlayingToday].filter(a => nhlPlayedYest.has(a));
   console.log(`  NHL: ${nhlEast.length+nhlWest.length} teams, ${nhlRemaining.length} remaining`);
 
-  // NHL yesterday results
+  // NHL yesterday results — use the scores endpoint for complete results
   const nhlYesterday = [];
   try {
-    const nyRes = await fetch(`https://api-web.nhle.com/v1/schedule/${yesterday}`);
+    const nyRes = await fetch(`https://api-web.nhle.com/v1/score/${yesterday}`);
     const nyData = await nyRes.json();
-    for (const week of (nyData.gameWeek||[])) {
-      if (week.date !== yesterday) continue;
-      for (const g of (week.games||[])) {
-        if (g.gameType !== 2) continue;
-        if (!g.homeTeam?.score && g.homeTeam?.score !== 0) continue;
-        const home = g.homeTeam?.abbrev;
-        const away = g.awayTeam?.abbrev;
-        const homeScore = g.homeTeam?.score;
-        const awayScore = g.awayTeam?.score;
-        if (!home || !away || homeScore == null) continue;
-        const winner = homeScore > awayScore ? home : away;
-        nhlYesterday.push({ h: home, a: away, winner });
-      }
+    for (const g of (nyData.games||[])) {
+      if (g.gameType !== 2) continue;
+      const home = g.homeTeam?.abbrev;
+      const away = g.awayTeam?.abbrev;
+      const homeScore = g.homeTeam?.score;
+      const awayScore = g.awayTeam?.score;
+      if (!home || !away || homeScore == null || awayScore == null) continue;
+      const winner = homeScore > awayScore ? home : away;
+      nhlYesterday.push({ h: home, a: away, winner });
     }
     console.log(`  NHL yesterday: ${nhlYesterday.length} final games`);
   } catch(e) { console.log('  NHL yesterday fetch failed:', e.message); }
