@@ -1142,10 +1142,15 @@ function renderProbs(odds, team, rank, league, conf) {
     const cutoff  = conf[9][2];
     const cutoff6 = conf[5][2];
     const isElim  = team[9] || w+rem<cutoff;
-    
+
+    // Derive mp from auto + playin survival instead of raw Monte Carlo mp
+    const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
+    const derivedMp = isElim ? 0 : team[10]==='auto' ? 100 : Math.round(odds.auto + (odds.pi/100) * spVal);
+    const mpDisplay = Math.min(99, Math.max(isElim?0:1, derivedMp));
+
     rows += probRow('% to Make the Playoffs',
       '',
-      odds.mp, oc(odds.mp), 'pbar1');
+      mpDisplay, oc(mpDisplay), 'pbar1');
     
     if(!isElim) {
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
@@ -1773,7 +1778,7 @@ function pick(abbr) {
     const b2=document.getElementById('pbar2');
     const b3=document.getElementById('pbar3');
     const b4=document.getElementById('pbar4');
-    if(b1) b1.style.width=odds.mp+'%';
+    if(b1) b1.style.width=(league==='nba'?(PLAYIN_SP[found[1]] !== undefined ? Math.min(99,Math.max(1,Math.round(odds.auto+(odds.pi/100)*(PLAYIN_SP[found[1]]??odds.sp)))) : odds.mp) : league==='nhl'?odds.mp:odds.mp)+'%';
     if(b2) b2.style.width=(league==='nba'?odds.auto:league==='nhl'?odds.div:odds.mp)+'%';
     if(b3) b3.style.width=(league==='nba'?odds.pi:league==='nhl'?odds.wc:0)+'%';
     if(b4) b4.style.width=(PLAYIN_SP[found[1]] ?? (odds.sp||0))+'%';
