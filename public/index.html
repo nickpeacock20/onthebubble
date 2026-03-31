@@ -870,16 +870,26 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       // SWING GAME — both teams are in our range
       const oppGap = oppEntry.gap;
       const oppAbsGap = oppEntry.absGap;
+      const units = absGap===1 ? 'win' : (league==='nhl' ? 'pts' : 'wins');
       const oppUnits = oppAbsGap===1 ? 'win' : (league==='nhl' ? 'pts' : 'wins');
-      const aheadTeam  = gap <= 0 ? rv  : opp;
-      const behindTeam = gap <= 0 ? opp : rv;
-      const aheadGap   = gap <= 0 ? absGap  : oppAbsGap;
-      const behindGap  = gap <= 0 ? oppAbsGap : absGap;
+
+      // gap < 0 means rv is AHEAD of us, gap > 0 means rv is BEHIND us
+      const rvDesc = gap < 0
+        ? `<strong>${rv}</strong> is ${absGap} ${units} ahead of you`
+        : gap === 0
+          ? `<strong>${rv}</strong> is tied with you`
+          : `<strong>${rv}</strong> is ${absGap} ${units} behind you`;
+      const oppDesc = oppGap < 0
+        ? `<strong>${opp}</strong> is ${oppAbsGap} ${oppUnits} ahead of you`
+        : oppGap === 0
+          ? `<strong>${opp}</strong> is tied with you`
+          : `<strong>${opp}</strong> is ${oppAbsGap} ${oppUnits} behind you`;
+
       items.push({
         type:'swing', ico:'⚡',
         matchup:`${g.a} @ ${g.h}`, time:g.t,
         tag:`SWING GAME`,
-        body:`<strong>${aheadTeam}</strong> is ${aheadGap} ${units} ahead of you, <strong>${behindTeam}</strong> is ${behindGap} ${oppUnits} behind. This game directly affects your position either way — root for whoever helps you most.`,
+        body:`${rvDesc}, ${oppDesc}. This game directly affects your position either way — root for whoever helps you most.`,
         hw:g.hw, aw:g.aw, home:g.h, away:g.a, cheerFor:null, cheerAgainst:null
       });
       return;
