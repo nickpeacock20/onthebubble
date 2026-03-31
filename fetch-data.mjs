@@ -64,21 +64,8 @@ async function main() {
 
   const eastEntries = espnData.children?.find(c => c.name?.includes('East'))?.standings?.entries || espnData.children?.[0]?.standings?.entries || [];
   const westEntries = espnData.children?.find(c => c.name?.includes('West'))?.standings?.entries || espnData.children?.[1]?.standings?.entries || [];
-  const nbaEast = parseESPN(eastEntries).sort((a,b) => {
-    if (b[2] !== a[2]) return b[2]-a[2]; // wins
-    if (a[3] !== b[3]) return a[3]-b[3]; // losses
-    // H2H tiebreaker
-    const h2hab = h2h[a[1]]?.[b[1]];
-    if (h2hab && h2hab.games > 0) return (h2hab.wins/h2hab.games) < 0.5 ? 1 : -1;
-    return 0;
-  });
-  const nbaWest = parseESPN(westEntries).sort((a,b) => {
-    if (b[2] !== a[2]) return b[2]-a[2];
-    if (a[3] !== b[3]) return a[3]-b[3];
-    const h2hab = h2h[a[1]]?.[b[1]];
-    if (h2hab && h2hab.games > 0) return (h2hab.wins/h2hab.games) < 0.5 ? 1 : -1;
-    return 0;
-  });
+  const nbaEast = parseESPN(eastEntries).sort((a,b) => b[2]-a[2] || a[3]-b[3]);
+  const nbaWest = parseESPN(westEntries).sort((a,b) => b[2]-a[2] || a[3]-b[3]);
   console.log(`  East: ${nbaEast.length} teams, West: ${nbaWest.length} teams`);
 
   // 2. BallDontLie — H2H + B2B
