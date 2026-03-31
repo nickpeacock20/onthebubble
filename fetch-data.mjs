@@ -172,6 +172,21 @@ async function main() {
   }
   console.log(`  ${nbaToday.length} games today, ${nbaRemaining.length} remaining`);
 
+  // NBA yesterday results
+  const nbaYesterday = [];
+  try {
+    const yRes = await fetch(`https://api.balldontlie.io/nba/v1/games?dates[]=${yesterday}&per_page=100`, { headers: { Authorization: BDL_KEY } });
+    const yData = await yRes.json();
+    for (const g of (yData.data||[])) {
+      if (g.status !== 'Final') continue;
+      const home = fixAbbr(g.home_team.abbreviation);
+      const away = fixAbbr(g.visitor_team.abbreviation);
+      const homeWon = g.home_team_score > g.visitor_team_score;
+      nbaYesterday.push({ h: home, a: away, winner: homeWon ? home : away });
+    }
+    console.log(`  NBA yesterday: ${nbaYesterday.length} final games`);
+  } catch(e) { console.log('  NBA yesterday fetch failed:', e.message); }
+
   // 4. NHL
   console.log('Fetching NHL data...');
   const [nhlStandRes, nhlScoreRes] = await Promise.all([
@@ -259,6 +274,28 @@ async function main() {
   const nhlB2B = [...nhlPlayingToday].filter(a => nhlPlayedYest.has(a));
   console.log(`  NHL: ${nhlEast.length+nhlWest.length} teams, ${nhlRemaining.length} remaining`);
 
+  // NHL yesterday results
+  const nhlYesterday = [];
+  try {
+    const nyRes = await fetch(`https://api-web.nhle.com/v1/schedule/${yesterday}`);
+    const nyData = await nyRes.json();
+    for (const week of (nyData.gameWeek||[])) {
+      if (week.date !== yesterday) continue;
+      for (const g of (week.games||[])) {
+        if (g.gameType !== 2) continue;
+        if (g.gameState !== 'OFF' && g.gameState !== 'FINAL') continue;
+        const home = g.homeTeam?.abbrev;
+        const away = g.awayTeam?.abbrev;
+        const homeScore = g.homeTeam?.score;
+        const awayScore = g.awayTeam?.score;
+        if (!home || !away || homeScore == null) continue;
+        const winner = homeScore > awayScore ? home : away;
+        nhlYesterday.push({ h: home, a: away, winner });
+      }
+    }
+    console.log(`  NHL yesterday: ${nhlYesterday.length} final games`);
+  } catch(e) { console.log('  NHL yesterday fetch failed:', e.message); }
+
   // 5. The-Odds-API — real moneylines for today's NBA and NHL games
   console.log('Fetching odds from The-Odds-API...');
   const ODDS_KEY = 'dd3a99c81f025a04c8d85ad021d7fe78';
@@ -318,8 +355,8 @@ async function main() {
   // 6. Write data.json
   const payload = {
     updatedAt: new Date().toISOString(),
-    nba: { east: nbaEast, west: nbaWest, today: nbaOddsToday, remaining: nbaRemaining, h2h, b2b },
-    nhl: { east: nhlEast, west: nhlWest, today: nhlOddsToday, remaining: nhlRemaining, b2b: nhlB2B, h2h: nhlH2H }
+    nba: { east: nbaEast, west: nbaWest, today: nbaOddsToday, remaining: nbaRemaining, h2h, b2b, yesterday: nbaYesterday },
+    nhl: { east: nhlEast, west: nhlWest, today: nhlOddsToday, remaining: nhlRemaining, b2b: nhlB2B, h2h: nhlH2H, yesterday: nhlYesterday }
   };
 
   fs.writeFileSync('data.json', JSON.stringify(payload));
