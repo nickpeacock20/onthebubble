@@ -18,6 +18,7 @@
   --accent:#00e5ff;--acdim:rgba(0,229,255,.07);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
 body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 /* HEADER */
@@ -43,6 +44,57 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-
 .grid{display:grid;grid-template-columns:1fr 324px;gap:16px}
 .lcol,.rcol{display:flex;flex-direction:column;gap:14px}
 @media(max-width:1060px){.grid{grid-template-columns:1fr}}
+@media(max-width:600px){
+  body{overflow-x:hidden}
+  .hdr{padding:0 10px;height:44px;gap:6px;flex-wrap:nowrap}
+  .logo{font-size:14px;flex-shrink:0}
+  .logo span{display:none}
+  .ltabs{gap:1px;flex-shrink:0}
+  .ltab{padding:3px 8px;font-size:10px}
+  .livepill{font-size:8px;white-space:normal;text-align:right;max-width:120px;flex-shrink:0}
+  .livepill div div:last-child{display:none}
+  .livdot{flex-shrink:0}
+  .selbar{padding:6px 10px;gap:6px}
+  .tsel{font-size:13px;padding:5px 8px;max-width:100%}
+  .wrap{padding:8px 8px;max-width:100vw}
+  .grid{gap:8px}
+  .lcol,.rcol{gap:8px}
+  .card{border-radius:8px}
+  .chdr{padding:8px 12px}
+  .ctitle{font-size:12px}
+  .csub{font-size:8.5px}
+  .stats3{grid-template-columns:repeat(3,1fr)}
+  .s3v{font-size:18px}
+  .s3l{font-size:8px}
+  .shdr{padding:12px}
+  .sname{font-size:20px}
+  .ssub{font-size:9px}
+  .sball{width:40px;height:40px;font-size:10px}
+  .winlose{grid-template-columns:1fr 1fr;gap:4px}
+  .bmatches{grid-template-columns:1fr 1fr;gap:5px}
+  .bmatch{padding:7px}
+  .bname{font-size:10px}
+  .brec{font-size:9px}
+  .probs{padding:10px 12px;gap:8px}
+  .plbl{font-size:11px}
+  .pnum{font-size:18px}
+  .ccard{padding:9px 10px}
+  .cmatchup{font-size:12px}
+  .cbody{font-size:11px;line-height:1.5}
+  .race{padding:3px 8px}
+  .rrow{padding:5px 2px}
+  .rname{font-size:11px}
+  .rstats{font-size:8px}
+  .rwins{font-size:11px}
+  .rball{width:24px;height:24px;font-size:6.5px}
+  .pigame{padding:8px 10px}
+  .piteam{padding:4px 0}
+  .piname{font-size:12px}
+  .pipct{font-size:12px}
+  .wl{padding:6px 8px}
+  .wll{font-size:9px}
+  .wlv{font-size:16px}
+}
 /* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
 .chdr{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
