@@ -1201,38 +1201,44 @@ function renderProbs(odds, team, rank, league, conf) {
   let rows = '';
 
   if(league==='nba') {
-    const cutoff  = conf[9][2];
-    const cutoff6 = conf[5][2];
-    const isElim  = team[9] || w+rem<cutoff;
+    const cutoff  = conf[9][2];  // 10th seed wins
+    const cutoff6 = conf[5][2];  // 6th seed wins
+    const isElim      = team[9] || w+rem < cutoff;   // can't reach play-in
+    const mathInPI    = w - (conf[9]?.[2]||0) > rem; // guaranteed play-in (can't be caught from 11th)
+    const mathNotTop6 = cutoff6 - w > rem;            // mathematically can't reach top 6
 
-    // Derive mp from auto + playin survival instead of raw Monte Carlo mp
+    // sp% from play-in bracket simulation
     const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
-    const derivedMp = isElim ? 0 : team[10]==='auto' ? 100 : Math.round(odds.auto + (odds.pi/100) * spVal);
+
+    // auto%: 0 if can't reach top 6, 100 if clinched, else Monte Carlo
+    const autoDisplay = isElim ? 0 : mathNotTop6 ? 0 : team[10]==='auto' ? 100 : Math.min(99, Math.max(1, odds.auto));
+
+    // pi%: 100 if guaranteed in play-in, 0 if elim, else Monte Carlo
+    const piDisplay = isElim ? 0 : mathInPI ? 100 : Math.min(99, Math.max(1, odds.pi));
+
+    // mp = auto + (pi × sp)
+    const derivedMp = isElim ? 0 : team[10]==='auto' ? 100 : Math.round(autoDisplay + (piDisplay/100) * spVal);
     const mpDisplay = Math.min(99, Math.max(isElim?0:1, derivedMp));
 
-    rows += probRow('% to Make the Playoffs',
-      '',
-      mpDisplay, oc(mpDisplay), 'pbar1');
-    
+    rows += probRow('% to Make the Playoffs', '', mpDisplay, oc(mpDisplay), 'pbar1', spVal);
+
     if(!isElim) {
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
       rows += probRow('% to Clinch Guaranteed Spot (Top 6)',
         rank<=6?`Currently #${rank} — defending auto spot`:`${Math.abs(w-cutoff6)} wins ${w>=cutoff6?'above':'back of'} the auto line`,
-        odds.auto, oc(odds.auto), 'pbar2');
-      
+        autoDisplay, oc(autoDisplay), 'pbar2');
+
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
       rows += probRow('% to Be in Play-In Tournament',
         rank<=6?'Risk of falling into play-in zone':rank<=10?`Currently the #${rank} seed in play-in`:'Must reach top 10 first',
-        odds.pi, 'var(--amber)', 'pbar3');
-      
+        piDisplay, 'var(--amber)', 'pbar3');
+
       if(rank>=7 && rank<=10) {
         rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
-        const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
         rows += probRow('% to Survive Play-In Tournament',
           rank===7?'1 win needed — best path':rank===8?'Win G1 or survive G3':'Must win 2 consecutive games',
           spVal, 'var(--purple)', 'pbar4');
       }
-      // Win/loss impact only for the main bar
     }
   } else if(league==='nhl') {
     // [9]=elim, [10]=clinched, [11]=confRank
@@ -1262,9 +1268,9 @@ function renderProbs(odds, team, rank, league, conf) {
   return `<div class="probs">${rows}</div>`;
 }
 
-function probRow(lbl, sub, val, color, id) {
+function probRow(lbl, sub, val, color, id, lossFloor=1) {
   const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+8));
-  const lossImpact = val===100?100:val===0?0:Math.max(1, Math.min(val, val-15));
+  const lossImpact = val===100?100:val===0?0:Math.max(lossFloor, Math.min(val, val-12));
   return `<div class="prow">
     <div class="plbl">${lbl}</div>
     <div class="psub">${sub}</div>
