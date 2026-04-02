@@ -917,13 +917,13 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     // Check if BOTH teams in this game are relevant rivals
     const opp = g.h===rv ? g.a : g.h;
     const oppEntry = bucket.find(b => b.t[1]===opp);
-    const units = absGap===1 ? 'win' : (league==='nhl' ? 'pts' : 'wins');
+    const units = league==='nhl' ? 'pt' + (absGap===1 ? '' : 's') : (absGap===1 ? 'win' : 'wins');
 
     if(oppEntry) {
       // SWING GAME — both teams are in our range
       const oppGap = oppEntry.gap;
       const oppAbsGap = oppEntry.absGap;
-      const units = absGap===1 ? 'win' : (league==='nhl' ? 'pts' : 'wins');
+      const units = league==='nhl' ? 'pt' + (absGap===1 ? '' : 's') : (absGap===1 ? 'win' : 'wins');
       const oppUnits = oppAbsGap===1 ? 'win' : (league==='nhl' ? 'pts' : 'wins');
 
       // gap < 0 means rv is AHEAD of us, gap > 0 means rv is BEHIND us
@@ -1053,7 +1053,7 @@ function getRecapItems(teamAbbr, conf, rank, yesterdayGames, league) {
 
     const rv  = t[1];
     const opp = g.h===rv ? g.a : g.h;
-    const units = absGap===1?'win':(league==='nhl'?'pts':'wins');
+    const units = league==='nhl' ? 'pt' + (absGap===1 ? '' : 's') : (absGap===1 ? 'win' : 'wins');
     const rvLost = g.winner !== rv;
 
     if (gap <= 0) {
