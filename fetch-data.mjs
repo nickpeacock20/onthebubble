@@ -56,16 +56,17 @@ async function main() {
       const streak = getStatStr('streak');
       const ci     = getStatStr('clincher').toLowerCase();
       const clinched = ci.includes('x') ? 'auto' : ci.includes('p') ? 'pi' : false;
+      const elim = ci.includes('e') ? true : false;
       return [e.team.displayName, abbr, w, l, 82-w-l, diff, l10w, streak,
-        NBA_COLORS[abbr]||'#888', false, clinched,
+        NBA_COLORS[abbr]||'#888', elim, clinched,
         l10str, getStatStr('Home')||'0-0', getStatStr('Road')||'0-0', diff];
     });
   }
 
   const eastEntries = espnData.children?.find(c => c.name?.includes('East'))?.standings?.entries || espnData.children?.[0]?.standings?.entries || [];
   const westEntries = espnData.children?.find(c => c.name?.includes('West'))?.standings?.entries || espnData.children?.[1]?.standings?.entries || [];
-  const nbaEast = parseESPN(eastEntries).sort((a,b) => b[2]-a[2] || a[3]-b[3]);
-  const nbaWest = parseESPN(westEntries).sort((a,b) => b[2]-a[2] || a[3]-b[3]);
+  const nbaEast = parseESPN(eastEntries);
+  const nbaWest = parseESPN(westEntries);
   console.log(`  East: ${nbaEast.length} teams, West: ${nbaWest.length} teams`);
 
   // 2. BallDontLie — H2H + B2B
