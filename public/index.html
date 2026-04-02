@@ -1206,23 +1206,18 @@ function renderProbs(odds, team, rank, league, conf) {
     const team10  = conf[9];
     const team11  = conf[10];
 
-    // HARD ELIMINATION: can't reach 10th place
+    // HARD ELIMINATION: can't reach 10th place even winning everything
     const hardElim = team[9] || (w + rem < (team10?.[2] || 0));
 
-    // HARD CLINCHED TOP 6: lead over 7th > games remaining
-    const gamesBack7 = team7 ? ((team7[2] - w) + (l - (team7[3]||0))) / 2 : 999;
-    const clinchTop6 = rank <= 6 && (team[10] === 'auto' || gamesBack7 > rem);
+    // HARD CLINCHED TOP 6: 7th seed can't catch current wins even winning everything
+    const clinchTop6 = rank <= 6 && (team[10] === 'auto' || (team7 && team7[2] + team7[4] < w));
 
-    // HARD CLINCHED PLAYIN: lead over 11th > games remaining
-    const gamesBack11 = team11 ? ((team11[2] - w) + (l - (team11[3]||0))) / 2 : 999;
-    const clinchPlayIn = rank >= 7 && rank <= 10 && (-gamesBack11 > rem);
+    // HARD CLINCHED PLAYIN: 11th seed can't catch current wins even winning everything
+    const clinchPlayIn = rank >= 7 && rank <= 10 && team11 && (team11[2] + team11[4] < w);
 
-    // MATH ELIMINATED FROM TOP 6: even winning all remaining can't match 6th seed's win pct
-    // Use win pct comparison since standings are sorted by win pct
+    // MATH ELIMINATED FROM TOP 6: max possible wins can't reach 6th seed's current wins
     const team6 = conf[5];
-    const myMaxWinPct = team6 ? (w + rem) / (w + l + rem) : 0;
-    const team6WinPct = team6 ? team6[2] / (team6[2] + team6[3]) : 0;
-    const elimTop6 = rank > 6 && team6 && myMaxWinPct < team6WinPct;
+    const elimTop6 = rank > 6 && team6 && (w + rem < team6[2]);
 
     // sp% from play-in bracket
     const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
