@@ -382,7 +382,15 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
       else wins[g.away]++;
     }
     for (const conf of [east, west]) {
-      const sorted = [...conf].sort((a,b) => (wins[b[1]]-wins[a[1]]) || (a[3]-b[3]));
+      const sorted = [...conf].sort((a,b) => {
+        if (wins[b[1]] !== wins[a[1]]) return wins[b[1]] - wins[a[1]];  // 1. simulated wins
+        const ah2h = h2h[a[1]]?.[b[1]];                                   // 2. H2H (min 2 games)
+        if (ah2h && ah2h.games >= 2) {
+          const diff = (ah2h.wins / ah2h.games) - 0.5;
+          if (Math.abs(diff) > 0.0001) return diff > 0 ? -1 : 1;
+        }
+        return (b[15]||0) - (a[15]||0);                                   // 3. Conference record
+      });
       sorted.slice(0,6).forEach(t => { counts[t[1]].top6++; counts[t[1]].mp++; });
       const pi = sorted.slice(6,10);
       pi.forEach(t => counts[t[1]].pi++);
