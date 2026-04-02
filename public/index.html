@@ -958,7 +958,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
         type:'cheerfor', ico:'🎯',
         matchup:`${g.a} @ ${g.h}`, time:g.t,
         tag:`CHEER FOR ${opp}`,
-        body:`<strong>${rv}</strong> is ${desc}. <strong class="gg">Root for ${opp} tonight.</strong> They have a <strong>${oppWP.toFixed(0)}%</strong> chance.${gap<0?' A ${rv} loss + your win = a full 1-game swing.':''}`,
+        body:`<strong>${rv}</strong> is ${desc}. <strong class="gg">Root for ${opp} tonight.</strong> They have a <strong>${oppWP.toFixed(0)}%</strong> chance.`,
         hw:g.hw, aw:g.aw, home:g.h, away:g.a, cheerFor:opp, cheerAgainst:rv
       });
     } else {
