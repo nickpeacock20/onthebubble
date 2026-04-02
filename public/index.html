@@ -424,14 +424,6 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
     };
   });
 
-  // Enforce seed order on play-in survival % — 7 > 8 > 9 > 10
-  for (const conf of [east, west]) {
-    const pi = conf.slice(6,10).map(t => t[1]).filter(a => odds[a]);
-    if (pi.length === 4) {
-      const spVals = pi.map(a => odds[a].sp).sort((a,b) => b-a);
-      pi.forEach((a,i) => { odds[a].sp = spVals[i]; odds[a].mp = Math.max(odds[a].auto + odds[a].sp * 0.85 / 100, odds[a].mp); });
-    }
-  }
 
   return odds;
 }
@@ -1236,19 +1228,19 @@ function renderProbs(odds, team, rank, league, conf) {
       piDisplay   = Math.min(99, Math.max(1, odds.pi));
       mpDisplay   = Math.min(99, Math.max(1, Math.round(autoDisplay + (piDisplay/100) * spVal)));
     } else if (stuckInPlayIn) {
-      // Mathematically stuck in play-in (Warriors, Clippers, Blazers etc)
-      // Use exact play-in bracket number for everything
+      // Mathematically stuck in play-in — use exact play-in bracket number
       autoDisplay = 0;
       piDisplay   = clinchPlayIn ? 100 : Math.min(99, Math.max(1, odds.pi));
       mpDisplay   = spVal;
     } else {
       // Play-in team that can still reach top 6 — full Monte Carlo
       autoDisplay = Math.min(99, Math.max(1, odds.auto));
-      piDisplay   = clinchPlayIn ? 100 : Math.min(99, Math.max(1, odds.pi));
+      piDisplay   = Math.min(99, Math.max(1, odds.pi));
       mpDisplay   = Math.min(99, Math.max(1, Math.round(autoDisplay + (piDisplay/100) * spVal)));
     }
 
-    rows += probRow('% to Make the Playoffs', '', mpDisplay, oc(mpDisplay), 'pbar1', hardElim?0:clinchTop6?100:clinchPlayIn?spVal:spVal);
+    rows += probRow('% to Make the Playoffs', '', mpDisplay, oc(mpDisplay), 'pbar1', hardElim?0:clinchTop6?100:spVal);
+    window._display = { mp: mpDisplay, auto: autoDisplay, pi: piDisplay, sp: spVal };
 
     if(!hardElim) {
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
@@ -1770,7 +1762,7 @@ function pick(abbr) {
                 <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-top:2px">${found[13]||'—'}</div>
               </div>
             </div>
-          `:`<div class="s3v" style="color:${odds.mp>60?'var(--green)':odds.mp>30?'var(--amber)':'var(--red)'}">${league==='nhl'?found[2]+'pts':odds.mp+'%'}</div><div class="s3l">${league==='nhl'?'Total Points':'Make Playoffs'}</div>`}
+          `:`<div class="s3v" style="color:${(window._display?.mp??odds.mp)>60?'var(--green)':(window._display?.mp??odds.mp)>30?'var(--amber)':'var(--red)'}">${league==='nhl'?found[2]+'pts':(league==='nba'?(window._display?.mp??odds.mp):odds.mp)+'%'}</div><div class="s3l">${league==='nhl'?'Total Points':'Make Playoffs'}</div>`}
         </div>
       </div>
     </div>
@@ -1881,10 +1873,11 @@ function pick(abbr) {
     const b2=document.getElementById('pbar2');
     const b3=document.getElementById('pbar3');
     const b4=document.getElementById('pbar4');
-    if(b1) b1.style.width=(league==='nba'?(PLAYIN_SP[found[1]] !== undefined ? Math.min(99,Math.max(1,Math.round(odds.auto+(odds.pi/100)*(PLAYIN_SP[found[1]]??odds.sp)))) : odds.mp) : league==='nhl'?odds.mp:odds.mp)+'%';
-    if(b2) b2.style.width=(league==='nba'?odds.auto:league==='nhl'?odds.div:odds.mp)+'%';
-    if(b3) b3.style.width=(league==='nba'?odds.pi:league==='nhl'?odds.wc:0)+'%';
-    if(b4) b4.style.width=(PLAYIN_SP[found[1]] ?? (odds.sp||0))+'%';
+    const d = window._display || {};
+    if(b1) b1.style.width=(league==='nba'?(d.mp??odds.mp):league==='nhl'?odds.mp:odds.mp)+'%';
+    if(b2) b2.style.width=(league==='nba'?(d.auto??odds.auto):league==='nhl'?odds.div:odds.mp)+'%';
+    if(b3) b3.style.width=(league==='nba'?(d.pi??odds.pi):league==='nhl'?odds.wc:0)+'%';
+    if(b4) b4.style.width=(league==='nba'?(d.sp??PLAYIN_SP[found[1]]??odds.sp):0)+'%';
   },100);
 }
 
