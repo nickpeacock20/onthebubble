@@ -57,16 +57,20 @@ async function main() {
       const ci     = getStatStr('clincher').toLowerCase();
       const clinched = ci.includes('x') ? 'auto' : ci.includes('p') ? 'pi' : false;
       const elim = ci.includes('e') ? true : false;
+      const confRec = getStatStr('vsConf') || getStatStr('Conference') || '0-0';
+      const confW = parseInt(confRec.split('-')[0]) || 0;
+      const confL = parseInt(confRec.split('-')[1]) || 0;
+      const confPct = confW + confL > 0 ? confW / (confW + confL) : 0;
       return [e.team.displayName, abbr, w, l, 82-w-l, diff, l10w, streak,
         NBA_COLORS[abbr]||'#888', elim, clinched,
-        l10str, getStatStr('Home')||'0-0', getStatStr('Road')||'0-0', diff];
+        l10str, getStatStr('Home')||'0-0', getStatStr('Road')||'0-0', diff, confPct];
     });
   }
 
   const eastEntries = espnData.children?.find(c => c.name?.includes('East'))?.standings?.entries || espnData.children?.[0]?.standings?.entries || [];
   const westEntries = espnData.children?.find(c => c.name?.includes('West'))?.standings?.entries || espnData.children?.[1]?.standings?.entries || [];
-  const nbaEast = parseESPN(eastEntries);
-  const nbaWest = parseESPN(westEntries);
+  let nbaEast = parseESPN(eastEntries).sort((a,b) => (b[2]/(b[2]+b[3])||0) - (a[2]/(a[2]+a[3])||0));
+  let nbaWest = parseESPN(westEntries).sort((a,b) => (b[2]/(b[2]+b[3])||0) - (a[2]/(a[2]+a[3])||0));
   console.log(`  East: ${nbaEast.length} teams, West: ${nbaWest.length} teams`);
 
   // 2. BallDontLie — H2H + B2B
@@ -130,6 +134,22 @@ async function main() {
   const b2b = [...playingToday].filter(a => playedYesterday.has(a));
   console.log(`  H2H built. B2B tonight: ${b2b.join(', ')||'none'}`);
   console.log(`  ORL vs MIA: ${JSON.stringify(h2h['ORL']?.['MIA'])}`);
+
+  // Re-sort with full tiebreaker chain now that h2h is available
+  const nbaSort = (a, b) => {
+    const aPct = a[2]/(a[2]+a[3]) || 0;
+    const bPct = b[2]/(b[2]+b[3]) || 0;
+    if (Math.abs(bPct - aPct) > 0.0001) return bPct - aPct;      // 1. Win pct
+    const ah2h = h2h[a[1]]?.[b[1]];                               // 2. H2H (min 2 games)
+    if (ah2h && ah2h.games >= 2) {
+      const diff = (ah2h.wins / ah2h.games) - 0.5;
+      if (Math.abs(diff) > 0.0001) return diff > 0 ? -1 : 1;
+    }
+    return (b[15]||0) - (a[15]||0);                               // 3. Conference record
+  };
+  nbaEast.sort(nbaSort);
+  nbaWest.sort(nbaSort);
+  console.log(`  East sorted: ${nbaEast.map(t=>t[1]).join(', ')}`);
 
   // 3. NBA Scoreboard + Schedule
   console.log('Fetching NBA scoreboard + schedule...');
