@@ -1204,7 +1204,8 @@ function renderProbs(odds, team, rank, league, conf) {
     const cutoff  = conf[9][2];  // 10th seed wins
     const cutoff6 = conf[5][2];  // 6th seed wins
     const isElim      = team[9] || w+rem < cutoff;   // can't reach play-in
-    const mathInPI    = w - (conf[9]?.[2]||0) > rem; // guaranteed play-in (can't be caught from 11th)
+    const team11      = conf[10];
+    const mathInPI    = team11 ? (w - team11[2]) > rem : rank <= 10; // can't be caught by 11th place
     const mathNotTop6 = cutoff6 - w > rem;            // mathematically can't reach top 6
 
     // sp% from play-in bracket simulation
@@ -1919,5 +1920,6 @@ buildSel();
 setTimeout(()=>{ document.getElementById('tsel').value='MIA'; pick('MIA'); }, 150);
 fetchLiveData();
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
