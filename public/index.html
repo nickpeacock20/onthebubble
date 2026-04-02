@@ -1272,16 +1272,16 @@ function renderProbs(odds, team, rank, league, conf) {
     const nhlConfRank = team[11];
     rows += probRow('% to Make the Playoffs',
       '',
-      odds.mp, oc(odds.mp), 'pbar1');
+      odds.mp, oc(odds.mp), 'pbar1', 1, true);
     if(!nhlElim && !nhlClinched) {
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
       rows += probRow('% to Win Division Spot (Top 3 in Division)',
         nhlConfRank<=3?`Division position — currently #${nhlConfRank} in conf`:'Must climb into top 3 of division',
-        odds.div, oc(odds.div), 'pbar2');
+        odds.div, oc(odds.div), 'pbar2', 1, true);
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
       rows += probRow('% to Clinch via Wild Card',
         nhlConfRank<=3?'In via division — wild card not needed':nhlConfRank<=8?'Currently holding a wild card spot':'Must overtake teams above them',
-        odds.wc, 'var(--amber)', 'pbar3');
+        odds.wc, 'var(--amber)', 'pbar3', 1, true);
     }
   } else if(league==='wnba') {
     const cutoff = conf[3][2];
@@ -1293,11 +1293,16 @@ function renderProbs(odds, team, rank, league, conf) {
   return `<div class="probs">${rows}</div>`;
 }
 
-function probRow(lbl, sub, val, color, id, lossFloor=1) {
-  // Scale delta based on certainty — teams near 0% or 100% move less per game
-  const uncertainty = Math.min(val, 100-val); // 0 at extremes, 50 at middle
-  const winDelta  = Math.round(Math.max(1, Math.min(8,  uncertainty * 0.16)));
-  const lossDelta = Math.round(Math.max(1, Math.min(12, uncertainty * 0.24)));
+function probRow(lbl, sub, val, color, id, lossFloor=1, isNHL=false) {
+  let winDelta, lossDelta;
+  if (isNHL) {
+    const uncertainty = Math.min(val, 100-val);
+    winDelta  = Math.round(Math.max(1, Math.min(8,  uncertainty * 0.16)));
+    lossDelta = Math.round(Math.max(1, Math.min(12, uncertainty * 0.24)));
+  } else {
+    winDelta  = 8;
+    lossDelta = 12;
+  }
   const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+winDelta));
   const lossImpact = val===100?100:val===0?0:Math.max(lossFloor, Math.min(val, val-lossDelta));
   return `<div class="prow">
