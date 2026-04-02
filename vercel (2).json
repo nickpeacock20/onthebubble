@@ -1,0 +1,22 @@
+{
+  "headers": [
+    {
+      "source": "/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "Expires", "value": "0" }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/update",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/montecarlo",
+      "schedule": "0 7 * * *"
+    }
+  ]
+}
