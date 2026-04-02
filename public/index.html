@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.1.1 -->
+<!-- v2.1.0 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1217,31 +1217,34 @@ function renderProbs(odds, team, rank, league, conf) {
 
     // MATH ELIMINATED FROM TOP 6: max possible wins can't reach 6th seed's current wins
     const team6 = conf[5];
-    const elimTop6 = rank > 6 && team6 && (w + rem < team6[2]);
+    const stuckInPlayIn = rank >= 7 && rank <= 10 && team6 && (w + rem < team6[2]);
 
-    // sp% from play-in bracket
+    // sp% from play-in bracket — the exact number shown in the bracket
     const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
 
     let autoDisplay, piDisplay, mpDisplay;
 
     if (hardElim) {
+      // Eliminated — 0% everything
       autoDisplay = 0; piDisplay = 0; mpDisplay = 0;
     } else if (clinchTop6) {
+      // Clinched top 6 — 100% everything, 0% play-in risk
       autoDisplay = 100; piDisplay = 0; mpDisplay = 100;
     } else if (rank <= 6) {
+      // Top 6 but not clinched — Monte Carlo
       autoDisplay = Math.min(99, Math.max(1, odds.auto));
       piDisplay   = Math.min(99, Math.max(1, odds.pi));
       mpDisplay   = Math.min(99, Math.max(1, Math.round(autoDisplay + (piDisplay/100) * spVal)));
-    } else if (clinchPlayIn) {
-      autoDisplay = 0; piDisplay = 100;
-      mpDisplay   = Math.min(99, Math.max(1, spVal));
-    } else if (elimTop6) {
+    } else if (stuckInPlayIn) {
+      // Mathematically stuck in play-in (Warriors, Clippers, Blazers etc)
+      // Use exact play-in bracket number for everything
       autoDisplay = 0;
-      piDisplay   = Math.min(99, Math.max(1, odds.pi));
-      mpDisplay   = Math.min(99, Math.max(1, Math.round((piDisplay/100) * spVal)));
+      piDisplay   = clinchPlayIn ? 100 : Math.min(99, Math.max(1, odds.pi));
+      mpDisplay   = spVal;
     } else {
+      // Play-in team that can still reach top 6 — full Monte Carlo
       autoDisplay = Math.min(99, Math.max(1, odds.auto));
-      piDisplay   = Math.min(99, Math.max(1, odds.pi));
+      piDisplay   = clinchPlayIn ? 100 : Math.min(99, Math.max(1, odds.pi));
       mpDisplay   = Math.min(99, Math.max(1, Math.round(autoDisplay + (piDisplay/100) * spVal)));
     }
 
