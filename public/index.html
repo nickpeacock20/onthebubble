@@ -535,6 +535,7 @@ async function fetchLiveData() {
     NHL.today = NHL.today.map(g => {
       const home=nhlTM[g.h], away=nhlTM[g.a];
       if (!home||!away) return g;
+      if (g.hw !== 50) return g; // keep Vegas odds if available
       const hw = Math.round(nhlWinProb(home, away, nhlB2B, nhlH2H) * 100);
       return {...g, hw, aw: 100-hw};
     });
