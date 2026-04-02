@@ -1218,8 +1218,12 @@ function renderProbs(odds, team, rank, league, conf) {
     const gamesBack11 = team11 ? ((team11[2] - w) + (l - (team11[3]||0))) / 2 : 999;
     const clinchPlayIn = rank >= 7 && rank <= 10 && (-gamesBack11 > rem);
 
-    // MATH ELIMINATED FROM TOP 6
-    const elimTop6 = rank > 6 && (cutoff6 - w > rem);
+    // MATH ELIMINATED FROM TOP 6: even winning all remaining can't match 6th seed's win pct
+    // Use win pct comparison since standings are sorted by win pct
+    const team6 = conf[5];
+    const myMaxWinPct = team6 ? (w + rem) / (w + l + rem) : 0;
+    const team6WinPct = team6 ? team6[2] / (team6[2] + team6[3]) : 0;
+    const elimTop6 = rank > 6 && team6 && myMaxWinPct < team6WinPct;
 
     // sp% from play-in bracket
     const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
