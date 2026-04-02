@@ -1240,7 +1240,7 @@ function renderProbs(odds, team, rank, league, conf) {
     }
 
     rows += probRow('% to Make the Playoffs', '', mpDisplay, oc(mpDisplay), 'pbar1', hardElim?0:clinchTop6?100:spVal);
-    window._display = { mp: mpDisplay, auto: autoDisplay, pi: piDisplay, sp: spVal };
+    nbaMP = mpDisplay; nbaAuto = autoDisplay; nbaPi = piDisplay;
 
     if(!hardElim) {
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
@@ -1294,15 +1294,9 @@ function renderProbs(odds, team, rank, league, conf) {
 }
 
 function probRow(lbl, sub, val, color, id, lossFloor=1, isNHL=false) {
-  let winDelta, lossDelta;
-  if (isNHL) {
-    const uncertainty = Math.min(val, 100-val);
-    winDelta  = Math.round(Math.max(1, Math.min(8,  uncertainty * 0.16)));
-    lossDelta = Math.round(Math.max(1, Math.min(12, uncertainty * 0.24)));
-  } else {
-    winDelta  = 8;
-    lossDelta = 12;
-  }
+  const uncertainty = Math.min(val, 100-val);
+  const winDelta  = Math.round(Math.max(1, Math.min(8,  uncertainty * 0.16)));
+  const lossDelta = Math.round(Math.max(1, Math.min(12, uncertainty * 0.24)));
   const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+winDelta));
   const lossImpact = val===100?100:val===0?0:Math.max(lossFloor, Math.min(val, val-lossDelta));
   return `<div class="prow">
@@ -1653,6 +1647,7 @@ function pick(abbr) {
   if(!abbr) return;
   let conf, confName, league=CL;
   let found = null, rank = 0;
+  let nbaMP=0, nbaAuto=0, nbaPi=0;
 
   if(league==='nba') {
     const ei=NBA.east.findIndex(t=>t[1]===abbr);
@@ -1882,10 +1877,10 @@ function pick(abbr) {
     const b2=document.getElementById('pbar2');
     const b3=document.getElementById('pbar3');
     const b4=document.getElementById('pbar4');
-    const d = window._display || {};
-    if(b1) b1.style.width=(league==='nba'?(d.mp??odds.mp):league==='nhl'?odds.mp:odds.mp)+'%';
-    if(b2) b2.style.width=(league==='nba'?(d.auto??odds.auto):league==='nhl'?odds.div:odds.mp)+'%';
-    if(b3) b3.style.width=(league==='nba'?(d.pi??odds.pi):league==='nhl'?odds.wc:0)+'%';
+    if(b1) b1.style.width=(league==='nba'?nbaMP:league==='nhl'?odds.mp:odds.mp)+'%';
+    if(b2) b2.style.width=(league==='nba'?nbaAuto:league==='nhl'?odds.div:odds.mp)+'%';
+    if(b3) b3.style.width=(league==='nba'?nbaPi:league==='nhl'?odds.wc:0)+'%';
+    if(b4) b4.style.width=(PLAYIN_SP[found[1]]??odds.sp??0)+'%';
     if(b4) b4.style.width=(league==='nba'?(d.sp??PLAYIN_SP[found[1]]??odds.sp):0)+'%';
   },100);
 }
