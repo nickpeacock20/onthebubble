@@ -1294,8 +1294,12 @@ function renderProbs(odds, team, rank, league, conf) {
 }
 
 function probRow(lbl, sub, val, color, id, lossFloor=1) {
-  const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+8));
-  const lossImpact = val===100?100:val===0?0:Math.max(lossFloor, Math.min(val, val-12));
+  // Scale delta based on certainty — teams near 0% or 100% move less per game
+  const uncertainty = Math.min(val, 100-val); // 0 at extremes, 50 at middle
+  const winDelta  = Math.round(Math.max(1, Math.min(8,  uncertainty * 0.16)));
+  const lossDelta = Math.round(Math.max(1, Math.min(12, uncertainty * 0.24)));
+  const winImpact  = val===100?100:val===0?0:Math.max(val, Math.min(99, val+winDelta));
+  const lossImpact = val===100?100:val===0?0:Math.max(lossFloor, Math.min(val, val-lossDelta));
   return `<div class="prow">
     <div class="plbl">${lbl}</div>
     <div class="psub">${sub}</div>
