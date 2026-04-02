@@ -919,7 +919,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     const oppEntry = bucket.find(b => b.t[1]===opp);
     const units = league==='nhl' ? 'pt' + (absGap===1 ? '' : 's') : (absGap===1 ? 'win' : 'wins');
 
-    if(oppEntry) {
+    if(oppEntry && Math.abs(absGap - oppEntry.absGap) <= 3) {
       // SWING GAME — both teams are in our range
       const oppGap = oppEntry.gap;
       const oppAbsGap = oppEntry.absGap;
