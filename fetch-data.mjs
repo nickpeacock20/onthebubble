@@ -364,10 +364,15 @@ async function main() {
     return todayGames.map(g => {
       const homeName = abbrToName[g.h] || g.h;
       const awayName = abbrToName[g.a] || g.a;
-      const match = Object.values(oddsMap).find(o =>
-        o.homeTeam.includes(homeName.split(' ').slice(-1)[0]) ||
-        homeName.includes(o.homeTeam.split(' ').slice(-1)[0])
-      );
+      const homeLast = homeName.split(' ').slice(-1)[0];
+      const awayLast = awayName.split(' ').slice(-1)[0];
+      // Match both home AND away teams
+      const match = Object.values(oddsMap).find(o => {
+        const oHomeLast = o.homeTeam.split(' ').slice(-1)[0];
+        const oAwayLast = o.awayTeam.split(' ').slice(-1)[0];
+        return (oHomeLast === homeLast || o.homeTeam.includes(homeLast) || homeName.includes(oHomeLast)) &&
+               (oAwayLast === awayLast || o.awayTeam.includes(awayLast) || awayName.includes(oAwayLast));
+      });
       if (match) return { ...g, hw: match.hw, aw: match.aw };
       return g;
     });
