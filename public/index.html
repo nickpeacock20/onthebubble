@@ -1201,44 +1201,75 @@ function renderProbs(odds, team, rank, league, conf) {
   let rows = '';
 
   if(league==='nba') {
-    const cutoff  = conf[9][2];  // 10th seed wins
-    const cutoff6 = conf[5][2];  // 6th seed wins
-    const isElim      = team[9] || w+rem < cutoff;   // can't reach play-in
-    const team11      = conf[10];
-    const mathInPI    = team11 ? (w - team11[2]) > rem : rank <= 10; // can't be caught by 11th place
-    const mathNotTop6 = cutoff6 - w > rem;            // mathematically can't reach top 6
+    const cutoff  = conf[9][2];
+    const cutoff6 = conf[5][2];
+    const team7   = conf[6];
+    const team10  = conf[9];
+    const team11  = conf[10];
 
-    // sp% from play-in bracket simulation
+    // HARD ELIMINATION: can't reach 10th place
+    const hardElim = team[9] || (w + rem < (team10?.[2] || 0));
+
+    // HARD CLINCHED TOP 6: lead over 7th > games remaining
+    const gamesBack7 = team7 ? ((team7[2] - w) + (l - (team7[3]||0))) / 2 : 999;
+    const clinchTop6 = rank <= 6 && (team[10] === 'auto' || gamesBack7 > rem);
+
+    // HARD CLINCHED PLAYIN: lead over 11th > games remaining
+    const gamesBack11 = team11 ? ((team11[2] - w) + (l - (team11[3]||0))) / 2 : 999;
+    const clinchPlayIn = rank >= 7 && rank <= 10 && (-gamesBack11 > rem);
+
+    // MATH ELIMINATED FROM TOP 6
+    const elimTop6 = rank > 6 && (cutoff6 - w > rem);
+
+    // sp% from play-in bracket
     const spVal = PLAYIN_SP[team[1]] ?? odds.sp;
 
-    // auto%: 0 if can't reach top 6, 100 if clinched, else Monte Carlo
-    const autoDisplay = isElim ? 0 : mathNotTop6 ? 0 : team[10]==='auto' ? 100 : Math.min(99, Math.max(1, odds.auto));
+    let autoDisplay, piDisplay, mpDisplay;
 
-    // pi%: 100 if guaranteed in play-in, 0 if elim, else Monte Carlo
-    const piDisplay = isElim ? 0 : mathInPI ? 100 : Math.min(99, Math.max(1, odds.pi));
+    if (hardElim) {
+      autoDisplay = 0; piDisplay = 0; mpDisplay = 0;
+    } else if (clinchTop6) {
+      autoDisplay = 100; piDisplay = 0; mpDisplay = 100;
+    } else if (rank <= 6) {
+      autoDisplay = Math.min(99, Math.max(1, odds.auto));
+      piDisplay   = Math.min(99, Math.max(1, odds.pi));
+      mpDisplay   = Math.min(99, Math.max(1, Math.round(autoDisplay + (piDisplay/100) * spVal)));
+    } else if (clinchPlayIn) {
+      autoDisplay = 0; piDisplay = 100;
+      mpDisplay   = Math.min(99, Math.max(1, spVal));
+    } else if (elimTop6) {
+      autoDisplay = 0;
+      piDisplay   = Math.min(99, Math.max(1, odds.pi));
+      mpDisplay   = Math.min(99, Math.max(1, Math.round((piDisplay/100) * spVal)));
+    } else {
+      autoDisplay = Math.min(99, Math.max(1, odds.auto));
+      piDisplay   = Math.min(99, Math.max(1, odds.pi));
+      mpDisplay   = Math.min(99, Math.max(1, Math.round(autoDisplay + (piDisplay/100) * spVal)));
+    }
 
-    // mp = auto + (pi × sp)
-    const derivedMp = isElim ? 0 : team[10]==='auto' ? 100 : Math.round(autoDisplay + (piDisplay/100) * spVal);
-    const mpDisplay = Math.min(99, Math.max(isElim?0:1, derivedMp));
+    rows += probRow('% to Make the Playoffs', '', mpDisplay, oc(mpDisplay), 'pbar1', hardElim?0:clinchTop6?100:clinchPlayIn?spVal:spVal);
 
-    rows += probRow('% to Make the Playoffs', '', mpDisplay, oc(mpDisplay), 'pbar1', spVal);
-
-    if(!isElim) {
+    if(!hardElim) {
       rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
       rows += probRow('% to Clinch Guaranteed Spot (Top 6)',
         rank<=6?`Currently #${rank} — defending auto spot`:`${Math.abs(w-cutoff6)} wins ${w>=cutoff6?'above':'back of'} the auto line`,
         autoDisplay, oc(autoDisplay), 'pbar2');
 
-      rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
-      rows += probRow('% to Be in Play-In Tournament',
-        rank<=6?'Risk of falling into play-in zone':rank<=10?`Currently the #${rank} seed in play-in`:'Must reach top 10 first',
-        piDisplay, 'var(--amber)', 'pbar3');
-
       if(rank>=7 && rank<=10) {
+        rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+        rows += probRow('% to Be in Play-In Tournament',
+          rank<=6?'Risk of falling into play-in zone':rank<=10?`Currently the #${rank} seed in play-in`:'Must reach top 10 first',
+          piDisplay, 'var(--amber)', 'pbar3');
+
         rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
         rows += probRow('% to Survive Play-In Tournament',
           rank===7?'1 win needed — best path':rank===8?'Win G1 or survive G3':'Must win 2 consecutive games',
           spVal, 'var(--purple)', 'pbar4');
+      } else if(rank<=6 && !clinchTop6) {
+        rows += `<div class="prow"><div style="height:1px;background:var(--border);margin:0"></div></div>`;
+        rows += probRow('% to Be in Play-In Tournament',
+          'Risk of falling into play-in zone',
+          piDisplay, 'var(--amber)', 'pbar3');
       }
     }
   } else if(league==='nhl') {
