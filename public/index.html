@@ -1712,7 +1712,8 @@ function pick(abbr) {
       autoDisplay=100; piDisplay=0; mpDisplay=100;
     } else {
       const mathNoTop6 = rank > 6 && team6 && (w + rem < team6[2]);
-      autoDisplay = mathNoTop6 ? 0 : Math.min(99,Math.max(1,odds.auto));
+      const gbBack = team6 ? ((team6[2] - w) + (l - team6[3])) / 2 : 0;
+      autoDisplay = mathNoTop6 ? 0 : gbBack > 2 ? 1 : Math.min(99,Math.max(1,odds.auto));
       piDisplay = Math.min(99,Math.max(1,odds.pi));
       mpDisplay = Math.min(99,Math.max(1,odds.mp));
     }
