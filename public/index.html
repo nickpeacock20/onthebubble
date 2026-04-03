@@ -155,7 +155,7 @@ body { background-color: #0b0e14; color: #ecedf6; font-family: 'Inter', sans-ser
 .rrank { font-family: 'Manrope', sans-serif; font-size: 18px; color: #a9abb3; width: 28px; text-align: center; flex-shrink: 0; font-weight: 700; }
 .you .rrank { color: #a1ffc2; }
 .rball { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 800; border: 2px solid; flex-shrink: 0; }
-.rinfo { flex: 0 1 auto; min-width: 0; margin-right: auto; }
+.rinfo { flex: 1; min-width: 0; }
 .rname { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.01em; }
 .rstats { font-family: 'Manrope', sans-serif; font-size: 13px; color: #a9abb3; margin-top: 3px; }
 .rwins { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 800; text-align: right; flex-shrink: 0; }
@@ -1793,7 +1793,7 @@ function pick(abbr) {
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
     <!-- LEFT COLUMN: 8 cols -->
-    <div class="lg:col-span-8 xl:col-span-8 space-y-5">
+    <div class="lg:col-span-9 xl:col-span-9 space-y-5">
 
       <!-- PLAYOFF ODDS: 3 big cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1877,7 +1877,7 @@ function pick(abbr) {
     </div>
 
     <!-- RIGHT COLUMN: 4 cols -->
-    <div class="lg:col-span-4 xl:col-span-4 space-y-5">
+    <div class="lg:col-span-3 xl:col-span-3 space-y-5">
 
       <!-- STANDINGS -->
       <div class="bg-surface-container-low rounded-xl overflow-hidden">
