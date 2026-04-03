@@ -1100,8 +1100,14 @@ function getStory(team, rank, conf, odds, league) {
       b:`<strong class="rr">${name} must win two consecutive games</strong> to reach the playoffs. Beat #10, then beat the G1 loser. Overall: <strong class="aa">${odds.mp}%</strong>. Climbing to #7 or #8 changes everything.`};
     if(rank===10) return {urg:'red',h:'On The Bubble',sub:'#10 seed — must win twice',
       b:`<strong class="rr">${name} must win two consecutive play-in games</strong> to reach the playoffs. <strong class="aa">${odds.mp}%</strong> chance. ${hot?`The <strong class="gg">${streakN}-game win streak</strong> is this team's best asset.`:cold?`<strong class="rr">The ${streakN}-game losing skid is a real problem.</strong>`:''}`};
-    // Outside
-    const deficit = cutoff-w;
+    // Outside play-in entirely
+    const deficit = cutoff - w; // positive = behind, negative = ahead
+    if (deficit <= 0) {
+      // They're actually in or above the play-in — shouldn't reach here but just in case
+      const ahead = Math.abs(deficit);
+      return {urg:'amber',h:'Holding On',sub:`${ahead} win${ahead!==1?'s':''} above the play-in line`,
+        b:`<strong>${name}</strong> are ${ahead} win${ahead!==1?'s':''} above the play-in cutoff with ${rem} games left. <strong class="aa">${odds.mp}%</strong> chance to make the playoffs.`};
+    }
     return {urg:'red',h:'Chasing the Bubble',sub:`${deficit} win${deficit!==1?'s':''} outside the play-in`,
       b:`<strong>${name}</strong> are ${deficit} win${deficit!==1?'s':''} behind the play-in cutoff with ${rem} games left. ${w+rem>=cutoff?`They need to win almost every game AND get help from above. <strong class="aa">${odds.mp}%</strong> chance.`:`<strong class="rr">Mathematically eliminated</strong> — max ${w+rem} wins, need ${cutoff}.`}`};
   }
@@ -1829,14 +1835,6 @@ function pick(abbr) {
 
     <!-- RIGHT COLUMN: 4 cols -->
     <div class="lg:col-span-4 space-y-5">
-
-      <!-- SEASON STORYLINE -->
-      <div class="bg-surface-container-low rounded-xl p-5 border-l-4" style="border-left-color:${urgColor}">
-        <p class="text-[10px] font-label uppercase tracking-[.18em] mb-2" style="color:${urgColor}">${story.urg==='green'?'✦ Strong Position':story.urg==='amber'?'◈ On The Bubble':'◉ Critical Zone'}</p>
-        <h3 class="font-headline font-bold text-xl tracking-tight mb-1">${story.h}</h3>
-        <p class="text-xs text-on-surface-variant mb-3">${story.sub}</p>
-        <p class="text-sm text-on-surface-variant leading-relaxed">${story.b}</p>
-      </div>
 
       <!-- STANDINGS -->
       <div class="bg-surface-container-low rounded-xl overflow-hidden">
