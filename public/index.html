@@ -1952,8 +1952,11 @@ function pick(abbr) {
   // Set win/loss impact values
   const mpVal = window._display?.mp ?? odds.mp;
   const uncertainty = Math.min(mpVal, 100-mpVal);
-  const winDelta = Math.round(Math.max(1, Math.min(8, uncertainty*0.16)));
-  const lossDelta = Math.round(Math.max(1, Math.min(12, uncertainty*0.24)));
+  // Games remaining multiplier — fewer games left = bigger swing per game
+  const remGames = league==='nhl' ? found[6] : rem;
+  const gamesFactor = remGames <= 3 ? 2.5 : remGames <= 6 ? 1.8 : remGames <= 10 ? 1.4 : 1.0;
+  const winDelta = Math.round(Math.max(1, Math.min(15, uncertainty * 0.16 * gamesFactor)));
+  const lossDelta = Math.round(Math.max(1, Math.min(20, uncertainty * 0.24 * gamesFactor)));
   const winImpact = mpVal===100?100:mpVal===0?0:Math.max(mpVal,Math.min(99,mpVal+winDelta));
   const lossImpact = mpVal===100?100:mpVal===0?0:Math.max(1,Math.min(mpVal,mpVal-lossDelta));
   const wi = document.getElementById('win-impact');
