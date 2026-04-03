@@ -1254,7 +1254,7 @@ function renderProbs(odds, team, rank, league, conf) {
     if(!hardElim) {
       rows += `<div class="prow"><div style="height:1px;background:rgba(255,255,255,0.06);margin:0"></div></div>`;
       rows += probRow('% to Clinch Guaranteed Spot (Top 6)',
-        rank<=6?`Currently #${rank} — defending auto spot`:`${Math.abs(w-cutoff6)} wins ${w>=cutoff6?'above':'back of'} the auto line`,
+        rank<=6?`Currently #${rank} — defending auto spot`:(()=>{const gb=((confTeams[5][2]-w)+(l-confTeams[5][3]))/2;return gb<=0?`${Math.abs(gb).toFixed(1)} GB above the line`:`${gb.toFixed(1)} GB back of auto spot`;})(),
         autoDisplay, oc(autoDisplay), 'pbar2');
 
       if(rank>=7 && rank<=10) {
@@ -1829,7 +1829,7 @@ function pick(abbr) {
           <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-1000 bg-on-surface/40" style="width:0%" id="pbar2"></div>
           </div>
-          <p class="text-xs text-on-surface-variant mt-3">${rank<=6?`Currently #${rank} — defending auto spot`:`${Math.abs(w-conf[5][2])} wins ${w>=conf[5][2]?'above':'back of'} the line`}</p>
+          <p class="text-xs text-on-surface-variant mt-3">${rank<=6?`Currently #${rank} — defending auto spot`:(()=>{const gb=((conf[5][2]-w)+(l-conf[5][3]))/2;return gb<=0?`${Math.abs(gb).toFixed(1)} GB above the line`:`${gb.toFixed(1)} GB back of auto spot`;})()}</p>
         </div>
         `:''}
         ${league==='nhl'?`
