@@ -320,12 +320,12 @@ function sigmoid(x, d) { return 1 / (1 + Math.exp(-x / d)); }
 // NBA win probability
 // team[5] = season point differential (net rating from ESPN)
 // B2B: if away team on back-to-back, home gets +3.0 instead of +2.5
-// H2H: up to 40% weight based on games played between teams
+// H2H: up to 60% weight when 4+ games played — matters as much as net rating
 function nbaWinProb(home, away, b2b, h2h) {
   const pd = home[5] - away[5] + (b2b.has(away[1]) ? 3.0 : 2.5);
   const hh = h2h[home[1]]?.[away[1]];
   if (hh && hh.games > 0) {
-    const h2hWeight = Math.min(hh.games / 4, 0.40);
+    const h2hWeight = Math.min(hh.games / 4, 0.60);
     const anrWeight = 1 - h2hWeight;
     return sigmoid(pd, 7) * anrWeight + (hh.wins / hh.games) * h2hWeight;
   }
