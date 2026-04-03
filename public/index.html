@@ -1704,9 +1704,11 @@ function pick(abbr) {
     } else if (clinchTop6) {
       autoDisplay=100; piDisplay=0; mpDisplay=100;
     } else {
-      autoDisplay=Math.min(99,Math.max(1,odds.auto));
-      piDisplay=Math.min(99,Math.max(1,odds.pi));
-      mpDisplay=Math.min(99,Math.max(1,odds.mp));
+      // If max wins can't reach 6th seed's current wins → 0% top 6
+      const mathNoTop6 = rank > 6 && team6 && (w + rem < team6[2]);
+      autoDisplay = mathNoTop6 ? 0 : Math.min(99,Math.max(1,odds.auto));
+      piDisplay = Math.min(99,Math.max(1,odds.pi));
+      mpDisplay = Math.min(99,Math.max(1,odds.mp));
     }
     window._display = {mp:mpDisplay, auto:autoDisplay, pi:piDisplay, sp:spVal};
   } else {
