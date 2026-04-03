@@ -385,8 +385,15 @@ function runNBAMonteCarlo(east, west, remaining, b2b, h2h, N=5000) {
         }
         return (b[15]||0) - (a[15]||0);                                   // 3. Conference record
       });
-      sorted.slice(0,6).forEach(t => { counts[t[1]].top6++; counts[t[1]].mp++; });
-      const pi = sorted.slice(6,10);
+      // Pre-compute which teams are mathematically eliminated from top 6
+      const confSorted6 = [...conf].sort((a,b) => b[2]-a[2]);
+      const cur6thWins = confSorted6[5]?.[2] || 0;
+      const elimFromTop6 = new Set(conf.filter(t => t[2] + t[4] < cur6thWins).map(t => t[1]));
+
+      const top6 = sorted.slice(0,6).filter(t => !elimFromTop6.has(t[1]));
+      const top6Set = new Set(top6.map(t => t[1]));
+      top6.forEach(t => { counts[t[1]].top6++; counts[t[1]].mp++; });
+      const pi = sorted.filter(t => !top6Set.has(t[1])).slice(0,4);
       pi.forEach(t => counts[t[1]].pi++);
       if (pi.length===4) {
         const winners = simulatePlayIn(pi[0],pi[1],pi[2],pi[3], b2b, h2h);
@@ -1707,8 +1714,7 @@ function pick(abbr) {
       const mathNoTop6 = rank > 6 && team6 && (w + rem < team6[2]);
       autoDisplay = mathNoTop6 ? 0 : Math.min(99,Math.max(1,odds.auto));
       piDisplay = Math.min(99,Math.max(1,odds.pi));
-      // If stuck in play-in mathematically, mp = play-in survival only
-      mpDisplay = mathNoTop6 ? Math.min(99,Math.max(1,spVal)) : Math.min(99,Math.max(1,odds.mp));
+      mpDisplay = Math.min(99,Math.max(1,odds.mp));
     }
     window._display = {mp:mpDisplay, auto:autoDisplay, pi:piDisplay, sp:spVal};
   } else {
