@@ -1685,6 +1685,42 @@ function pick(abbr) {
   else if(league==='nhl') odds=nhlOdds(found,rank);
   else odds=wnbaOdds(found,rank,conf);
 
+  // Calculate correct display odds for NBA (same logic as renderProbs)
+  if(league==='nba') {
+    const cutoff  = conf[9][2];
+    const cutoff6 = conf[5][2];
+    const team7   = conf[6];
+    const team10  = conf[9];
+    const team11  = conf[10];
+    const hardElim = found[9] || (w + rem < (team10?.[2] || 0));
+    const clinchTop6 = rank <= 6 && (found[10] === 'auto' || (team7 && team7[2] + team7[4] < w));
+    const clinchPlayIn = rank >= 7 && rank <= 10 && team11 && (team11[2] + team11[4] < w);
+    const team6 = conf[5];
+    const stuckInPlayIn = rank >= 7 && rank <= 10 && team6 && (w + rem < team6[2]);
+    const spVal = PLAYIN_SP[abbr] ?? odds.sp;
+    let autoDisplay, piDisplay, mpDisplay;
+    if (hardElim) {
+      autoDisplay=0; piDisplay=0; mpDisplay=0;
+    } else if (clinchTop6) {
+      autoDisplay=100; piDisplay=0; mpDisplay=100;
+    } else if (rank <= 6) {
+      autoDisplay=Math.min(99,Math.max(1,odds.auto));
+      piDisplay=Math.min(99,Math.max(1,odds.pi));
+      mpDisplay=Math.min(99,Math.max(1,Math.round(autoDisplay+(piDisplay/100)*spVal)));
+    } else if (stuckInPlayIn) {
+      autoDisplay=0;
+      piDisplay=clinchPlayIn?100:Math.min(99,Math.max(1,odds.pi));
+      mpDisplay=spVal;
+    } else {
+      autoDisplay=Math.min(99,Math.max(1,odds.auto));
+      piDisplay=clinchPlayIn?100:Math.min(99,Math.max(1,odds.pi));
+      mpDisplay=Math.min(99,Math.max(1,Math.round(autoDisplay+(piDisplay/100)*spVal)));
+    }
+    window._display = {mp:mpDisplay, auto:autoDisplay, pi:piDisplay, sp:spVal};
+  } else {
+    window._display = {mp:odds.mp, auto:odds.div||0, pi:odds.wc||0, sp:0};
+  }
+
   const today = league==='nba'?NBA.today:league==='nhl'?NHL.today:WNBA.today;
   const yesterday = league==='nba'?(DATA.nba?.yesterday||[]):league==='nhl'?(DATA.nhl?.yesterday||[]):[];
   const cheerItems = getCheerItems(abbr,conf,rank,today,league);
@@ -1768,20 +1804,20 @@ function pick(abbr) {
     <div class="lg:col-span-8 space-y-5">
 
       <!-- PLAYOFF ODDS: 3 big cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
-          <p class="text-xs font-label uppercase text-on-surface-variant mb-3">${league==='nhl'?'To Make Playoffs':'To Make Playoffs'}</p>
+          <p class="text-xs font-label uppercase text-on-surface-variant mb-3">To Make Playoffs</p>
           <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:${color}" id="hero-mp">${window._display?.mp??odds.mp}%</div>
           <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-1000" style="background:${color};width:0%" id="pbar1"></div>
           </div>
           <div class="grid grid-cols-2 gap-2 mt-3">
             <div class="bg-surface-container-highest rounded-lg p-2">
-              <p class="text-[9px] font-label uppercase text-on-surface-variant mb-0.5">If they win</p>
+              <p class="text-[9px] font-label uppercase text-on-surface-variant mb-0.5">If they win next game</p>
               <p class="font-headline font-bold text-base text-primary" id="win-impact">—%</p>
             </div>
             <div class="bg-surface-container-highest rounded-lg p-2">
-              <p class="text-[9px] font-label uppercase text-on-surface-variant mb-0.5">If they lose</p>
+              <p class="text-[9px] font-label uppercase text-on-surface-variant mb-0.5">If they lose next game</p>
               <p class="font-headline font-bold text-base text-tertiary" id="loss-impact">—%</p>
             </div>
           </div>
@@ -1795,14 +1831,6 @@ function pick(abbr) {
           </div>
           <p class="text-xs text-on-surface-variant mt-3">${rank<=6?`Currently #${rank} — defending auto spot`:`${Math.abs(w-conf[5][2])} wins ${w>=conf[5][2]?'above':'back of'} the line`}</p>
         </div>
-        <div class="bg-surface-container-high p-5 rounded-xl">
-          <p class="text-xs font-label uppercase text-on-surface-variant mb-3">${rank>=7&&rank<=10?'Survive Play-In':'In Play-In'}</p>
-          <div class="text-4xl sm:text-5xl font-headline font-bold text-secondary mb-3" id="hero-pi">${rank>=7&&rank<=10?(PLAYIN_SP[abbr]??window._display?.sp??odds.sp):window._display?.pi??odds.pi}%</div>
-          <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-1000 bg-secondary/50" style="width:0%" id="${rank>=7&&rank<=10?'pbar4':'pbar3'}"></div>
-          </div>
-          <p class="text-xs text-on-surface-variant mt-3">${rank===7?'1 win needed — best path':rank===8?'Win G1 or survive G3':rank>=9&&rank<=10?'Must win 2 consecutive':rank<=6?'Risk of falling to play-in':'Must reach top 10 first'}</p>
-        </div>
         `:''}
         ${league==='nhl'?`
         <div class="bg-surface-container-high p-5 rounded-xl">
@@ -1812,14 +1840,6 @@ function pick(abbr) {
             <div class="h-full rounded-full transition-all duration-1000 bg-on-surface/40" style="width:0%" id="pbar2"></div>
           </div>
           <p class="text-xs text-on-surface-variant mt-3">${found[11]<=3?`Div #${found[12]} — in division spot`:'Must climb into top 3'}</p>
-        </div>
-        <div class="bg-surface-container-high p-5 rounded-xl">
-          <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Via Wild Card</p>
-          <div class="text-4xl sm:text-5xl font-headline font-bold text-secondary mb-3">${odds.wc}%</div>
-          <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-1000 bg-secondary/50" style="width:0%" id="pbar3"></div>
-          </div>
-          <p class="text-xs text-on-surface-variant mt-3">${found[11]<=3?'In via division — wild card not needed':found[11]<=8?'Currently holding a wild card spot':'Must overtake teams above them'}</p>
         </div>
         `:''}
       </div>
