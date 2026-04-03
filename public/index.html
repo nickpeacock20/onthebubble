@@ -1703,13 +1703,7 @@ function pick(abbr) {
       autoDisplay=0; piDisplay=0; mpDisplay=0;
     } else if (clinchTop6) {
       autoDisplay=100; piDisplay=0; mpDisplay=100;
-    } else if (stuckInPlayIn) {
-      // Can't reach top 6 — mp is purely play-in survival
-      autoDisplay=0;
-      piDisplay=Math.min(99,Math.max(1,odds.pi));
-      mpDisplay=Math.min(99,Math.max(1,Math.round((piDisplay/100)*spVal)));
     } else {
-      // Trust Monte Carlo for everything else — it already accounts for all scenarios
       autoDisplay=Math.min(99,Math.max(1,odds.auto));
       piDisplay=Math.min(99,Math.max(1,odds.pi));
       mpDisplay=Math.min(99,Math.max(1,odds.mp));
