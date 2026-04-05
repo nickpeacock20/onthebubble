@@ -1856,7 +1856,7 @@ function renderScenarioCheer(abbr, conf, today) {
   }
 
   const tabsHtml = scenarios.map(s=>`
-    <button class="sc-tab" data-sid="${s.id}" data-abbr="${abbr}" style="padding:5px 12px;border-radius:20px;font-family:'Manrope',sans-serif;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(255,255,255,0.08);background:${s.id===activeScenario.id?'#a1ffc2':'#1c2028'};color:${s.id===activeScenario.id?'#004627':'#a9abb3'};white-space:nowrap;transition:all .15s;margin:2px">
+    <button class="sc-tab" data-sid="${s.id}" data-abbr="${abbr}" style="padding:9px 20px;border-radius:20px;font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(255,255,255,0.08);background:${s.id===activeScenario.id?'#a1ffc2':'#1c2028'};color:${s.id===activeScenario.id?'#004627':'#a9abb3'};white-space:nowrap;transition:all .15s;margin:3px">
       ${s.label}${s.sublabel?`<span style="margin-left:4px;opacity:0.6;font-size:8px">${s.sublabel}</span>`:''}
     </button>`).join('');
 
