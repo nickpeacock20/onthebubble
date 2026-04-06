@@ -766,9 +766,6 @@ function nbaOdds(team, rank, conf) {
 }
 
 function nhlOdds(team, rank, conf) {
-  // Use Monte Carlo odds if available
-  if (MC_ODDS.nhl?.[team[1]]) return MC_ODDS.nhl[team[1]];
-
   // [0]name,[1]abbr,[2]pts,[3]w,[4]l,[5]otl,[6]rem,[7]streak,[8]color,[9]elim,[10]clinched,[11]confRank,[12]divRank,[13]div
   const pts = team[2], w = team[3], l = team[4], otl = team[5], rem = team[6];
   const elim = team[9], clinched = team[10], confRank = team[11], divName = team[13];
@@ -796,6 +793,16 @@ function nhlOdds(team, rank, conf) {
 
   if(mathClinchDiv) return {mp:100,div:100,wc:0};
   if(mathClinchPlayoff) return {mp:100,div:clinched==='div'?100:50,wc:50};
+
+  // Monte Carlo may say 100% but if not mathematically clinched, cap at 99%
+  if(MC_ODDS.nhl?.[team[1]]) {
+    const mc = MC_ODDS.nhl[team[1]];
+    return {
+      mp:  mc.mp  >= 100 ? 99 : mc.mp,
+      div: mc.div >= 100 ? 99 : mc.div,
+      wc:  mc.wc  >= 100 ? 99 : mc.wc,
+    };
+  }
   const maxPts = pts + rem*2;
   const wcCutoff = 94; // approx wild card cutoff
   if(maxPts < wcCutoff - 8) return {mp:0,div:0,wc:0};
