@@ -892,8 +892,10 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     const absGap = Math.abs(gap);
 
     const tRem = league==='nhl' ? t[6] : (t[4] || (82-t[2]-t[3]));
-    if(gap > 0 && gap > tRem*2) return;
-    if(gap < 0 && absGap > myRem*2) return;
+    // A team behind us can only close the gap by tRem wins at most
+    // A team ahead of us — we can only close by myRem wins at most
+    if(gap > 0 && gap > tRem) return;   // they're behind — can't catch us
+    if(gap < 0 && absGap > myRem) return; // they're ahead — we can't catch them
     if(absGap > (league==='nhl' ? 10 : 6)) return;
 
     // Find their game tonight — not involving us
