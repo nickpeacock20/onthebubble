@@ -1329,7 +1329,7 @@ function probRow(lbl, sub, val, color, id, lossFloor=1, isNHL=false) {
 }
 
 function renderCheer(items) {
-  if(!items.length) return '<div style="padding:16px;color:#73757d;font-size:13px;text-align:center">No games today involving rival teams.</div>';
+  if(!items.length) return `<div class="cheerlist"><div class="citem offnight"><div class="ctop"><span class="cico">💤</span><div class="cmatch"><div class="cmatchup">OFF TONIGHT</div><div class="ctime">OFF NIGHT</div></div><span class="ctag">OFF NIGHT</span></div><div class="cbody">No game tonight. A loss by any team in the standings above you is worth exactly as much as a win.</div></div></div>`;
   return `<div class="cheerlist">${items.map(item => {
     const hasGame = item.home && item.away;
     return `<div class="citem ${item.type}">
@@ -1819,8 +1819,8 @@ function scenarioGetCheerItems(abbr, conf, scenario, today) {
   });
 
   if(!items.length) {
-    items.push({type:'watch',matchup:'OFF TONIGHT',tag:'OFF NIGHT',
-      body:'No relevant games tonight for this scenario.',
+    items.push({type:'offnight',matchup:'OFF TONIGHT',tag:'OFF NIGHT',
+      body:'No game tonight. A loss by any team in the standings above you is worth exactly as much as a win.',
       hw:50,aw:50,h:'',a:'',cheerFor:null});
   }
   return items;
