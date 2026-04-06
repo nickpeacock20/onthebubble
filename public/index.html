@@ -765,16 +765,37 @@ function nbaOdds(team, rank, conf) {
   return {mp:Math.round(mp), auto:Math.round(auto_), pi:Math.round(pi_), sp:Math.round(sp_)};
 }
 
-function nhlOdds(team, rank) {
+function nhlOdds(team, rank, conf) {
   // Use Monte Carlo odds if available
   if (MC_ODDS.nhl?.[team[1]]) return MC_ODDS.nhl[team[1]];
 
   // [0]name,[1]abbr,[2]pts,[3]w,[4]l,[5]otl,[6]rem,[7]streak,[8]color,[9]elim,[10]clinched,[11]confRank,[12]divRank,[13]div
   const pts = team[2], w = team[3], l = team[4], otl = team[5], rem = team[6];
-  const elim = team[9], clinched = team[10], confRank = team[11];
+  const elim = team[9], clinched = team[10], confRank = team[11], divName = team[13];
   if(elim) return {mp:0,div:0,wc:0};
-  if(clinched==='div') return {mp:100,div:100,wc:0};
-  if(clinched==='playoff') return {mp:100,div:50,wc:50};
+
+  // Mathematically verify division clinch — don't just trust API flag
+  // Must check that 4th place in division cannot catch us
+  const mathClinchDiv = (() => {
+    if(!conf) return clinched==='div';
+    const divTeams = conf.filter(t=>t[13]===divName).sort((a,b)=>b[2]-a[2]);
+    const fourth = divTeams[3];
+    if(!fourth) return true;
+    return pts > fourth[2] + fourth[6]*2; // our pts > their max possible pts
+  })();
+
+  // Mathematically verify playoff clinch (top 3 div OR wild card)
+  const mathClinchPlayoff = (() => {
+    if(!conf) return clinched==='playoff';
+    // Check if even the 9th team in conference can't catch us
+    const confSorted = [...conf].sort((a,b)=>b[2]-a[2]);
+    const ninth = confSorted[8];
+    if(!ninth) return true;
+    return pts > ninth[2] + ninth[6]*2;
+  })();
+
+  if(mathClinchDiv) return {mp:100,div:100,wc:0};
+  if(mathClinchPlayoff) return {mp:100,div:clinched==='div'?100:50,wc:50};
   const maxPts = pts + rem*2;
   const wcCutoff = 94; // approx wild card cutoff
   if(maxPts < wcCutoff - 8) return {mp:0,div:0,wc:0};
@@ -1929,7 +1950,7 @@ function pick(abbr) {
 
   let odds;
   if(league==='nba') odds=nbaOdds(found,rank,conf);
-  else if(league==='nhl') odds=nhlOdds(found,rank);
+  else if(league==='nhl') odds=nhlOdds(found,rank,conf);
   else odds=wnbaOdds(found,rank,conf);
 
   // Calculate correct display odds for NBA (same logic as renderProbs)
