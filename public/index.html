@@ -1746,6 +1746,14 @@ function scenarioGetCheerItems(abbr, conf, scenario, today) {
   const isWest = NBA.west.findIndex(t=>t[1]===abbr)>=0;
   const items = [];
 
+  // Check if team has a game tonight
+  const hasGame = today.some(g => g.h===abbr || g.a===abbr);
+  if(!hasGame) {
+    items.push({type:'offnight', matchup:'OFF TONIGHT', tag:'OFF NIGHT',
+      body:'No game tonight. A loss by any team in the standings above you is worth exactly as much as a win.',
+      hw:50, aw:50, h:'', a:'', cheerFor:null});
+  }
+
   today.forEach(g => {
     // Skip MIN games for West teams
     if(isWest && (g.h==='MIN'||g.a==='MIN')) return;
