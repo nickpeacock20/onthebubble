@@ -1803,6 +1803,7 @@ function scenarioGetCheerItems(abbr, conf, scenario, today) {
     }
 
     if(scenario.id === 'best') {
+      const myRem = me[4] || (82-me[2]-me[3]);
       const rivals = conf.slice(5,10).filter(t=>t[1]!==abbr);
       const homeRival = rivals.find(t=>t[1]===g.h);
       const awayRival = rivals.find(t=>t[1]===g.a);
@@ -1810,17 +1811,21 @@ function scenarioGetCheerItems(abbr, conf, scenario, today) {
       if(!rival) return;
       const rivalAbbr = rival[1];
       const rivalAhead = ((rival[2]-me[2])+(me[3]-rival[3]))/2;
+      const tRem = rival[4]||(82-rival[2]-rival[3]);
+      // Filter out mathematically irrelevant rivals
+      if(rivalAhead > 0 && rivalAhead > tRem) return;  // behind us, can't catch us
+      if(rivalAhead < 0 && Math.abs(rivalAhead) > myRem) return; // ahead, we can't catch them
       const otherAbbr = g.h===rivalAbbr?g.a:g.h;
       const rivalWP = g.h===rivalAbbr?g.hw:g.aw;
       const otherWP = 100-rivalWP;
       const rivalRank = conf.findIndex(t=>t[1]===rivalAbbr)+1;
       if(rivalAhead > 0) {
         items.push({type:'cheerfor',matchup,tag:`CHEER FOR ${otherAbbr}`,
-          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is ${rivalAhead.toFixed(1)} GB ahead of you. Root for <strong>${otherAbbr}</strong> — they have a <strong>${otherWP}%</strong> chance.`,
+          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is ${rivalAhead.toFixed(1)} games ahead of you. Root for <strong>${otherAbbr}</strong> — they have a <strong>${otherWP}%</strong> chance.`,
           hw:g.hw,aw:g.aw,h:g.h,a:g.a,cheerFor:otherAbbr});
       } else if(rivalAhead < -1.5) {
         items.push({type:'watch',matchup,tag:'KEEP WINNING',
-          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is ${Math.abs(rivalAhead).toFixed(1)} GB behind you. Focus on your own game.`,
+          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is ${Math.abs(rivalAhead).toFixed(1)} games behind you. Focus on your own game.`,
           hw:g.hw,aw:g.aw,h:g.h,a:g.a,cheerFor:null});
       } else {
         // Within 1.5 GB behind — still a threat, cheer against them
