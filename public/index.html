@@ -1823,14 +1823,13 @@ function scenarioGetCheerItems(abbr, conf, scenario, today) {
         items.push({type:'cheerfor',matchup,tag:`CHEER FOR ${otherAbbr}`,
           body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is ${rivalAhead.toFixed(1)} games ahead of you. Root for <strong>${otherAbbr}</strong> — they have a <strong>${otherWP}%</strong> chance.`,
           hw:g.hw,aw:g.aw,h:g.h,a:g.a,cheerFor:otherAbbr});
-      } else if(rivalAhead < -1.5) {
-        items.push({type:'watch',matchup,tag:'KEEP WINNING',
-          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is ${Math.abs(rivalAhead).toFixed(1)} games behind you. Focus on your own game.`,
-          hw:g.hw,aw:g.aw,h:g.h,a:g.a,cheerFor:null});
+      } else if(rivalAhead < 0) {
+        items.push({type:'cheeragainst',matchup,tag:`ROOT AGAINST ${rivalAbbr}`,
+          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is ${Math.abs(rivalAhead).toFixed(1)} games behind you — still in reach. Root against them tonight. <strong>${otherAbbr}</strong> has a <strong>${otherWP}%</strong> chance.`,
+          hw:g.hw,aw:g.aw,h:g.h,a:g.a,cheerFor:otherAbbr});
       } else {
-        // Within 1.5 GB behind — still a threat, cheer against them
         items.push({type:'cheerfor',matchup,tag:`CHEER FOR ${otherAbbr}`,
-          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is only ${Math.abs(rivalAhead).toFixed(1)} GB behind you — still a threat. Root for <strong>${otherAbbr}</strong>. They have a <strong>${otherWP}%</strong> chance.`,
+          body:`<strong>${rivalAbbr}</strong> (Seed #${rivalRank}) is tied with you — tiebreakers matter. Root for <strong>${otherAbbr}</strong> — they have a <strong>${otherWP}%</strong> chance.`,
           hw:g.hw,aw:g.aw,h:g.h,a:g.a,cheerFor:otherAbbr});
       }
     } else {
