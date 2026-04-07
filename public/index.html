@@ -1009,10 +1009,40 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     }
   });
 
+  // ── SPECIAL CASE: Minnesota Timberwolves clinch scenario ─────
+  if(teamAbbr === 'MIN' && league === 'nba') {
+    // Remove OKC @ LAL entirely — LAL owns tiebreaker and is 4 games up with 4 left
+    const noLAL = items.filter(item => item.home!=='LAL' && item.away!=='LAL');
+
+    // Find PHX/HOU game — replace with clinch swing card
+    const phxIdx = noLAL.findIndex(item => item.home==='PHX'||item.away==='PHX'||item.home==='HOU'||item.away==='HOU');
+    if(phxIdx >= 0) {
+      const existing = noLAL[phxIdx];
+      noLAL[phxIdx] = {
+        type:'swing', ico:'⚡',
+        matchup:existing.matchup, time:existing.time||'',
+        tag:'CLINCH WATCH',
+        body:`<strong>This game matters two ways.</strong> A <strong class="gg">PHX loss + MIN win tonight clinches Minnesota a top 6 playoff seed.</strong> Also, MIN trails HOU by 3 games for the 5 seed — a Rockets loss tonight keeps that race alive.`,
+        hw:existing.hw, aw:existing.aw, home:existing.home, away:existing.away, cheerFor:'HOU', cheerAgainst:'PHX'
+      };
+    } else {
+      // PHX/HOU game not yet in list — add it
+      const phxGame = todayGames.find(g=>(g.h==='PHX'&&g.a==='HOU')||(g.h==='HOU'&&g.a==='PHX'));
+      if(phxGame) {
+        noLAL.push({
+          type:'swing', ico:'⚡',
+          matchup:`${phxGame.a} @ ${phxGame.h}`, time:phxGame.t||'',
+          tag:'CLINCH WATCH',
+          body:`<strong>This game matters two ways.</strong> A <strong class="gg">PHX loss + MIN win tonight clinches Minnesota a top 6 playoff seed.</strong> Also, MIN trails HOU by 3 games for the 5 seed — a Rockets loss tonight keeps that race alive.`,
+          hw:phxGame.hw, aw:phxGame.aw, home:phxGame.h, away:phxGame.a, cheerFor:'HOU', cheerAgainst:'PHX'
+        });
+      }
+    }
+    return noLAL.slice(0, 8);
+  }
+
   return items.slice(0, 8);
 }
-
-// ============================================================
 // YESTERDAY'S RECAP ENGINE
 // ============================================================
 function getRecapItems(teamAbbr, conf, rank, yesterdayGames, league) {
@@ -1839,6 +1869,16 @@ function scenarioGetCheerItems(abbr, conf, scenario, today) {
       if(!homeWant && !awayWant) return;
       const pickAbbr = (homeWant&&g.h===scenario.targetOpp)?g.h:(awayWant&&g.a===scenario.targetOpp)?g.a:homeWant?g.h:g.a;
       const pickWant = wants[pickAbbr];
+      const pickTeam = conf.find(t=>t[1]===pickAbbr);
+      const myRem2 = me[4]||(82-me[2]-me[3]);
+
+      // Skip if this team can't mathematically affect the race
+      if(pickTeam) {
+        const pickAhead = ((pickTeam[2]-me[2])+(me[3]-pickTeam[3]))/2;
+        const pickTRem = pickTeam[4]||(82-pickTeam[2]-pickTeam[3]);
+        if(pickAhead > 0 && pickAhead > pickTRem) return;
+        if(pickAhead < 0 && Math.abs(pickAhead) > myRem2) return;
+      }
       const otherAbbr = g.h===pickAbbr?g.a:g.h;
       const pickWP = g.h===pickAbbr?g.hw:g.aw;
       const otherWP = 100-pickWP;
@@ -2234,7 +2274,17 @@ function pick(abbr) {
   const lossImpact = mpVal===100?100:mpVal===0?0:Math.max(1,Math.min(mpVal,mpVal-lossDelta));
   const wi = document.getElementById('win-impact');
   const li = document.getElementById('loss-impact');
-  if(wi) wi.textContent = winImpact+'%';
+
+  // Check if a win tonight clinches top 6 (NBA) or div top 3 (NHL)
+  if(league==='nba' && wi) {
+    const team7 = conf[6];
+    const winClinchesTop6 = rank<=6 && team7 && (w+1 > team7[2]+team7[4]);
+    wi.textContent = winClinchesTop6 ? 'CLINCHED 🎉' : winImpact+'%';
+    wi.style.color = winClinchesTop6 ? '#a1ffc2' : '';
+    wi.style.fontSize = winClinchesTop6 ? '12px' : '';
+  } else if(wi) {
+    wi.textContent = winImpact+'%';
+  }
   if(li) li.textContent = lossImpact+'%';
 
   // Animate probability bars
