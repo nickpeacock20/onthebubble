@@ -956,7 +956,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     const units = league==='nhl' ? 'pt' + (absGap===1 ? '' : 's') : (absGap===1 ? 'win' : 'wins');
 
     const sameSign = oppEntry && ((gap <= 0 && oppEntry.gap <= 0) || (gap > 0 && oppEntry.gap > 0));
-    if(oppEntry && sameSign && Math.abs(absGap - oppEntry.absGap) <= 1) {
+    if(oppEntry && sameSign && absGap === oppEntry.absGap) {
       // SWING GAME — both teams are in our range
       const oppGap = oppEntry.gap;
       const oppAbsGap = oppEntry.absGap;
