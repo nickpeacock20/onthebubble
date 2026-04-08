@@ -2279,10 +2279,10 @@ function pick(abbr) {
   // Check if a win tonight clinches top 6 (NBA) or div top 3 (NHL)
   if(league==='nba' && wi) {
     const team7 = conf[6];
-    const winClinchesTop6 = rank<=6 && team7 && (w+1 > team7[2]+team7[4]);
-    wi.textContent = winClinchesTop6 ? 'CLINCHED 🎉' : winImpact+'%';
+    const winClinchesTop6 = rank<=6 && team7 && (w+1 >= team7[2]+team7[4]);
+    wi.textContent = winClinchesTop6 ? '100% — CLINCHED 🎉' : winImpact+'%';
     wi.style.color = winClinchesTop6 ? '#a1ffc2' : '';
-    wi.style.fontSize = winClinchesTop6 ? '12px' : '';
+    wi.style.fontSize = winClinchesTop6 ? '10px' : '';
   } else if(wi) {
     wi.textContent = winImpact+'%';
   }
