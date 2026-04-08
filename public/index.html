@@ -861,7 +861,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       type:'yourgame', ico: gameIco,
       matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
       tag:'YOUR GAME',
-      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.`,
+      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':''}`,
       hw:myGame.hw, aw:myGame.aw, home:myGame.h, away:myGame.a, cheerFor:null, cheerAgainst:null
     });
   } else {
@@ -1003,7 +1003,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
         type:'cheeragainst', ico:'🛡️',
         matchup:`${g.a} @ ${g.h}`, time:g.t,
         tag:`PROTECT YOUR SPOT`,
-        body:`<strong>${rv}</strong> is ${absGap} ${units} behind you and still in range. <strong class="gg">Root for ${opp}</strong> to keep them there. They have a <strong>${oppWP.toFixed(0)}%</strong> chance.`,
+        body:`<strong>${rv}</strong> is ${absGap} ${units} behind you and still in range. <strong class="gg">Root for ${opp}</strong> to keep them there. They have a <strong>${oppWP.toFixed(0)}%</strong> chance.${teamAbbr==='OKC'&&rv==='SAS'?' A '+opp+' win guarantees the No. 1 seed in the West.':''}`,
         hw:g.hw, aw:g.aw, home:g.h, away:g.a, cheerFor:opp, cheerAgainst:rv
       });
     }
