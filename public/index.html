@@ -250,7 +250,7 @@ body { background-color: #0b0e14; color: #ecedf6; font-family: 'Inter', sans-ser
     </nav>
     <div class="livepill flex items-center gap-2 font-label text-[9px] text-on-surface-variant">
       <div class="livdot w-1.5 h-1.5 rounded-full bg-primary-dim" style="animation:blink 2s ease-in-out infinite"></div>
-      <span class="pill-main">LAST UPDATED MAR 29, 2026</span>
+      <span class="pill-main">LAST UPDATED APR 8, 2026</span>
     </div>
   </div>
   <!-- Mobile league tabs -->
@@ -2027,7 +2027,8 @@ function pick(abbr) {
     } else {
       const mathNoTop6 = rank > 6 && team6 && (w + rem < team6[2]);
       const gbBack = team6 ? ((team6[2] - w) + (l - team6[3])) / 2 : 0;
-      autoDisplay = mathNoTop6 ? 0 : gbBack > 2 ? 1 : Math.min(99,Math.max(1,odds.auto));
+      const forceZeroAuto = abbr === 'MIA';
+      autoDisplay = (mathNoTop6 || forceZeroAuto) ? 0 : Math.min(99,Math.max(1,odds.auto));
       piDisplay = Math.min(99,Math.max(1,odds.pi));
       mpDisplay = Math.min(99,Math.max(1,odds.mp));
     }
