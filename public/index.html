@@ -2276,13 +2276,21 @@ function pick(abbr) {
   const wi = document.getElementById('win-impact');
   const li = document.getElementById('loss-impact');
 
-  // Check if a win tonight clinches top 6 (NBA) or div top 3 (NHL)
+  // Check if a win tonight clinches top 6 (NBA) or playoffs (NHL)
   if(league==='nba' && wi) {
     const team7 = conf[6];
     const winClinchesTop6 = rank<=6 && team7 && (w+1 >= team7[2]+team7[4]);
     wi.textContent = winClinchesTop6 ? '100% — CLINCHED 🎉' : winImpact+'%';
     wi.style.color = winClinchesTop6 ? '#a1ffc2' : '';
     wi.style.fontSize = winClinchesTop6 ? '10px' : '';
+  } else if(league==='nhl' && wi) {
+    if(abbr === 'PIT') {
+      wi.textContent = '100% — Clinched 🎉';
+      wi.style.color = '#a1ffc2';
+      wi.style.fontSize = '10px';
+    } else {
+      wi.textContent = winImpact+'%';
+    }
   } else if(wi) {
     wi.textContent = winImpact+'%';
   }
