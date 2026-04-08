@@ -905,13 +905,26 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       const myConfRank = myTeamData[11];
       const tConfRank  = t[11];
 
+      // A team is "going in via division" if they're top 3 in their division
+      const tGoingViaDiv = tDivRank <= 3;
+      const myGoingViaDiv = myDivRank <= 3;
+
+      // Can I still mathematically reach top 3 in my division?
+      const divTeams = conf.filter(t2=>t2[13]===myDiv).sort((a,b)=>b[2]-a[2]);
+      const third = divTeams[2];
+      const myPts = myTeamData[2];
+      const myRem2 = myTeamData[6];
+      const canReachDivTop3 = myDivRank <= 3 || (third && myPts + myRem2*2 >= third[2]);
+
       // Only relevant if:
-      // 1. Same division and both near the top 3 cutoff
-      // 2. Both in wild card race (conf rank 3-6 range fighting for WC spots)
-      const sameDivRace = myDiv === tDiv && (myDivRank <= 4 || tDivRank <= 4);
-      const wcRace = myConfRank > 3 && tConfRank > 3; // both outside div leaders fighting for WC
-      const chasingDiv = myDiv !== tDiv && tDivRank <= 3 && myConfRank <= 6; // we're chasing a div leader for WC
-      if(!sameDivRace && !wcRace && !chasingDiv) return;
+      // 1. Same division race (always relevant within own division)
+      // 2. Both in wild card race AND neither can reach div top 3
+      // 3. They are a wild card rival below/near me (not a div leader from another div)
+      const sameDivRace = myDiv === tDiv;
+      const bothWCOnly = !canReachDivTop3 && tDivRank > 3;
+      const tCanReachTop3 = tDivRank <= 3 || (divTeams[2] && t[2] + t[6]*2 >= divTeams[2][2]);
+      const wcRace = myConfRank > 3 && tConfRank > 3 && (!canReachDivTop3 ? tDivRank > 3 : true);
+      if(!sameDivRace && !wcRace) return;
     }
 
     // True games back
