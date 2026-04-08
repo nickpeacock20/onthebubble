@@ -861,7 +861,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       type:'yourgame', ico: gameIco,
       matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
       tag:'YOUR GAME',
-      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='PIT'?' A win tonight clinches a playoff spot.':''}`,
+      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='PIT'?' A win tonight clinches a playoff spot.':teamAbbr==='ATL'?' A win tonight clinches a guaranteed top 6 playoff spot!':''}`,
       hw:myGame.hw, aw:myGame.aw, home:myGame.h, away:myGame.a, cheerFor:null, cheerAgainst:null
     });
   } else {
@@ -921,9 +921,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       // 2. Both in wild card race AND neither can reach div top 3
       // 3. They are a wild card rival below/near me (not a div leader from another div)
       const sameDivRace = myDiv === tDiv;
-      const bothWCOnly = !canReachDivTop3 && tDivRank > 3;
-      const tCanReachTop3 = tDivRank <= 3 || (divTeams[2] && t[2] + t[6]*2 >= divTeams[2][2]);
-      const wcRace = myConfRank > 3 && tConfRank > 3 && (!canReachDivTop3 ? tDivRank > 3 : true);
+      const wcRace = myConfRank > 3 && tConfRank > 3 && (canReachDivTop3 || tDivRank > 3);
       if(!sameDivRace && !wcRace) return;
     }
 
