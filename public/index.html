@@ -250,7 +250,7 @@ body { background-color: #0b0e14; color: #ecedf6; font-family: 'Inter', sans-ser
     </nav>
     <div class="livepill flex items-center gap-2 font-label text-[9px] text-on-surface-variant">
       <div class="livdot w-1.5 h-1.5 rounded-full bg-primary-dim" style="animation:blink 2s ease-in-out infinite"></div>
-      <span class="pill-main">LAST UPDATED APR 8, 2026</span>
+      <span class="pill-main">LAST UPDATED APR 9, 2026</span>
     </div>
   </div>
   <!-- Mobile league tabs -->
@@ -921,7 +921,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       // 2. Both in wild card race AND neither can reach div top 3
       // 3. They are a wild card rival below/near me (not a div leader from another div)
       const sameDivRace = myDiv === tDiv;
-      const wcRace = myConfRank > 3 && tConfRank > 3 && (canReachDivTop3 || tDivRank > 3);
+      const wcRace = myConfRank > 3 && tConfRank > 3 && (canReachDivTop3 ? myDiv === tDiv : tDivRank > 3);
       if(!sameDivRace && !wcRace) return;
     }
 
