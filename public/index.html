@@ -889,6 +889,12 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     // Elimination check
     if(t[9]) return;
 
+    // PIT override — only these 4 Metro rivals matter
+    if(teamAbbr === 'PIT' && league === 'nhl') {
+      const pitRivals = ['PHI','CBJ','NYI','WSH'];
+      if(!pitRivals.includes(t[1])) return;
+    }
+
     // NBA: skip teams that can't reach play-in or can't affect us
     if(league==='nba') {
       const tMax = t[2] + (t[4] || (82-t[2]-t[3]));
