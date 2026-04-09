@@ -910,19 +910,16 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       const myGoingViaDiv = myDivRank <= 3;
 
       // Can I still mathematically reach top 3 in my division?
-      const divTeams = conf.filter(t2=>t2[13]===myDiv).sort((a,b)=>b[2]-a[2]);
-      const third = divTeams[2];
+      const myDivTeams = conf.filter(t2=>t2[13]===myDiv).sort((a,b)=>b[2]-a[2]);
+      const myThird = myDivTeams[2];
       const myPts = myTeamData[2];
       const myRem2 = myTeamData[6];
-      const canReachDivTop3 = myDivRank <= 3 || (third && myPts + myRem2*2 >= third[2]);
+      const canReachDivTop3 = myDivRank <= 3 || (myThird && myPts + myRem2*2 >= myThird[2]);
 
-      // Only relevant if:
-      // 1. Same division race (always relevant within own division)
-      // 2. Both in wild card race AND neither can reach div top 3
-      // 3. They are a wild card rival below/near me (not a div leader from another div)
-      const sameDivRace = myDiv === tDiv;
-      const wcRace = myConfRank > 3 && tConfRank > 3 && (canReachDivTop3 ? myDiv === tDiv : tDivRank > 3);
-      if(!sameDivRace && !wcRace) return;
+      // Skip div top 3 teams from OTHER divisions if I can't reach my own div top 3
+      if(!canReachDivTop3 && myDiv !== tDiv && tDivRank <= 3) return;
+      // Skip teams that are clearly not in any relevant race (eliminated or way out)
+      if(t[9]) return;
     }
 
     // True games back
