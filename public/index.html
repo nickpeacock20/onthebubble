@@ -889,10 +889,24 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     // Elimination check
     if(t[9]) return;
 
-    // PIT override — only these 4 Metro rivals matter
+    // PIT override — always show these 4 teams if they have a game, no filtering
     if(teamAbbr === 'PIT' && league === 'nhl') {
       const pitRivals = ['PHI','CBJ','NYI','WSH'];
       if(!pitRivals.includes(t[1])) return;
+      const g = todayGames.find(g2 => (g2.h===t[1]||g2.a===t[1]) && g2.h!==teamAbbr && g2.a!==teamAbbr);
+      if(!g) return;
+      const opp = g.h===t[1] ? g.a : g.h;
+      const oppWP = g.h===t[1] ? g.aw : g.hw;
+      const gap = myW - t[2];
+      const units = gap===1?'pt':'pts';
+      items.push({
+        type:'cheeragainst', ico:'🛡️',
+        matchup:`${g.a} @ ${g.h}`, time:g.t,
+        tag:`PROTECT YOUR SPOT`,
+        body:`<strong>${t[1]}</strong> is ${Math.abs(gap)} ${units} behind you. <strong class="gg">Root for ${opp}</strong> to keep them there. They have a <strong>${oppWP.toFixed(0)}%</strong> chance.`,
+        hw:g.hw, aw:g.aw, home:g.h, away:g.a, cheerFor:opp, cheerAgainst:t[1]
+      });
+      return;
     }
 
     // NBA: skip teams that can't reach play-in or can't affect us
@@ -936,11 +950,12 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     const absGap = Math.abs(gap);
 
     const tRem = league==='nhl' ? t[6] : (t[4] || (82-t[2]-t[3]));
-    // A team behind us can only close the gap by tRem wins at most
-    // A team ahead of us — we can only close by myRem wins at most
-    if(gap > 0 && gap > tRem) return;   // they're behind — can't catch us
-    if(gap < 0 && absGap > myRem) return; // they're ahead — we can't catch them
-    if(absGap > (league==='nhl' ? 10 : 6)) return;
+    // A team behind us can only close the gap by tRem wins (NBA) or tRem*2 pts (NHL)
+    const maxClose = league==='nhl' ? tRem*2 : tRem;
+    const maxCatch = league==='nhl' ? myRem*2 : myRem;
+    if(gap > 0 && gap > maxClose) return;
+    if(gap < 0 && absGap > maxCatch) return;
+    if(absGap > (league==='nhl' ? 14 : 6)) return;
 
     // Find their game tonight — not involving us
     const g = todayGames.find(g2 =>
