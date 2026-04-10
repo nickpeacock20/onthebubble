@@ -2156,13 +2156,9 @@ function pick(abbr) {
 
         if(nbaClinched || nhlClinched) {
           return `<div class="rounded-xl p-8 text-center relative overflow-hidden" style="background:linear-gradient(135deg,${color}18,${color}08);border:2px solid ${color}40">
-            <div class="absolute inset-0 opacity-5" style="background:radial-gradient(circle at center,${color},transparent 70%)"></div>
             <div class="relative z-10">
-              <div style="font-size:52px;margin-bottom:12px">🎉</div>
-              <h2 class="font-headline font-extrabold text-3xl md:text-4xl tracking-tight mb-2" style="color:${color}">PLAYOFF SPOT CLINCHED!</h2>
-              <p class="font-label text-sm uppercase tracking-widest text-on-surface-variant mb-6">
-                ${league==='nhl'?`${found[13]} Division · Conf #${rank}`:league==='nba'?`#${rank} Seed · ${confName} Conference`:''}
-              </p>
+              <div style="font-size:48px;margin-bottom:12px">🎉</div>
+              <h2 class="font-headline font-extrabold text-3xl tracking-tight mb-6" style="color:${color}">PLAYOFF SPOT CLINCHED!</h2>
               <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto">
                 <div class="bg-surface-container-high rounded-xl p-3">
                   <p class="text-[9px] font-label uppercase text-on-surface-variant mb-1">Record</p>
