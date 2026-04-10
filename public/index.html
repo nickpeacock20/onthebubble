@@ -2120,11 +2120,18 @@ function pick(abbr) {
     if(!tb || league!=='nba') return '';
     const winsStr = tb.wins.length ? tb.wins.join(', ') : null;
     const losesStr = tb.loses.length ? tb.loses.join(', ') : null;
-    return `<div class="rounded-xl px-5 py-3 mb-0 flex flex-wrap items-center gap-3" style="background:#1c2028;border:1px solid rgba(255,255,255,0.08)">
-      <span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant font-bold flex-shrink-0">Tiebreakers</span>
-      ${winsStr ? `<span class="font-label text-xs"><span class="text-on-surface-variant">Wins vs</span> <span class="font-bold" style="color:#a1ffc2">${winsStr}</span></span>` : ''}
-      ${winsStr && losesStr ? `<span class="text-on-surface-variant text-xs">·</span>` : ''}
-      ${losesStr ? `<span class="font-label text-xs"><span class="text-on-surface-variant">Loses vs</span> <span class="font-bold" style="color:#ff716b">${losesStr}</span></span>` : ''}
+    return `<div class="rounded-xl px-6 py-6 mb-5" style="background:#1c2028;border:1px solid rgba(255,255,255,0.08)">
+      <p class="font-headline font-bold text-xl uppercase tracking-tight mb-5">Tiebreaker Situations</p>
+      <div class="flex flex-col sm:flex-row gap-6">
+        ${winsStr ? `<div class="flex-1">
+          <p class="font-label text-xs uppercase tracking-widest mb-2" style="color:#a1ffc2">Owns Tiebreaker vs.</p>
+          <p class="font-label text-sm font-bold" style="color:#a1ffc2">${winsStr}</p>
+        </div>` : ''}
+        ${losesStr ? `<div class="flex-1">
+          <p class="font-label text-xs uppercase tracking-widest mb-2" style="color:#ff716b">Lost Tiebreaker vs.</p>
+          <p class="font-label text-sm font-bold" style="color:#ff716b">${losesStr}</p>
+        </div>` : ''}
+      </div>
     </div>`;
   })()}
 
