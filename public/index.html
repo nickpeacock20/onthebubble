@@ -1829,7 +1829,7 @@ function scenarioGetCheerItems(abbr, conf, scenario, today) {
 
     if(scenario.id === 'best') {
       const myRem = me[4] || (82-me[2]-me[3]);
-      const rivals = conf.slice(5,10).filter(t=>t[1]!==abbr);
+      const rivals = conf.slice(abbr==='ORL'?4:5,10).filter(t=>t[1]!==abbr);
       const homeRival = rivals.find(t=>t[1]===g.h);
       const awayRival = rivals.find(t=>t[1]===g.a);
       const rival = homeRival||awayRival;
