@@ -2146,8 +2146,39 @@ function pick(abbr) {
     <!-- LEFT COLUMN: 8 cols -->
     <div class="lg:col-span-9 xl:col-span-9 space-y-5">
 
-      <!-- PLAYOFF ODDS: 3 big cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- PLAYOFF ODDS: clinch banner or probability cards -->
+      ${(()=>{
+        // NBA: clinched top 6 auto spot
+        const nbaClinched = league==='nba' && (found[10]==='auto' || (conf[6] && conf[6][2]+conf[6][4] < w));
+        // NHL: clinched playoff spot (div or wildcard)
+        const nhlClinched = league==='nhl' && (found[10]==='div' || found[10]==='playoff' ||
+          abbr==='TBL' || abbr==='UTA'); // manual overrides
+
+        if(nbaClinched || nhlClinched) {
+          return `<div class="rounded-xl p-8 text-center relative overflow-hidden" style="background:linear-gradient(135deg,${color}18,${color}08);border:2px solid ${color}40">
+            <div class="absolute inset-0 opacity-5" style="background:radial-gradient(circle at center,${color},transparent 70%)"></div>
+            <div class="relative z-10">
+              <div style="font-size:52px;margin-bottom:12px">🎉</div>
+              <h2 class="font-headline font-extrabold text-3xl md:text-4xl tracking-tight mb-2" style="color:${color}">PLAYOFF SPOT CLINCHED!</h2>
+              <p class="font-label text-sm uppercase tracking-widest text-on-surface-variant mb-6">
+                ${league==='nhl'?`${found[13]} Division · Conf #${rank}`:league==='nba'?`#${rank} Seed · ${confName} Conference`:''}
+              </p>
+              <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto">
+                <div class="bg-surface-container-high rounded-xl p-3">
+                  <p class="text-[9px] font-label uppercase text-on-surface-variant mb-1">Record</p>
+                  <p class="font-headline font-bold text-xl" style="color:${color}">${recDisplay}</p>
+                </div>
+                <div class="bg-surface-container-high rounded-xl p-3">
+                  <p class="text-[9px] font-label uppercase text-on-surface-variant mb-1">Games Left</p>
+                  <p class="font-headline font-bold text-xl text-on-surface">${rem}</p>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }
+
+        // Normal odds cards
+        return `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
           <p class="text-xs font-label uppercase text-on-surface-variant mb-3">To Make Playoffs</p>
           <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:${color}" id="hero-mp">${window._display?.mp??odds.mp}%</div>
@@ -2185,7 +2216,8 @@ function pick(abbr) {
           <p class="text-xs text-on-surface-variant mt-3">${found[12]<=3?`Div #${found[12]} — in division spot`:'Must climb into top 3 of division'}</p>
         </div>
         `:''}
-      </div>
+      </div>`;
+      })()}
 
       <!-- WHO TO CHEER FOR TODAY -->
       <div class="bg-surface-container-low rounded-xl overflow-hidden">
