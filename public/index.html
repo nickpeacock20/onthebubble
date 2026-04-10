@@ -1038,37 +1038,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     }
   });
 
-  // ── SPECIAL CASE: Minnesota Timberwolves clinch scenario ─────
-  if(teamAbbr === 'MIN' && league === 'nba') {
-    // Remove OKC @ LAL entirely — LAL owns tiebreaker and is 4 games up with 4 left
-    const noLAL = items.filter(item => item.home!=='LAL' && item.away!=='LAL');
 
-    // Find PHX/HOU game — replace with clinch swing card
-    const phxIdx = noLAL.findIndex(item => item.home==='PHX'||item.away==='PHX'||item.home==='HOU'||item.away==='HOU');
-    if(phxIdx >= 0) {
-      const existing = noLAL[phxIdx];
-      noLAL[phxIdx] = {
-        type:'swing', ico:'⚡',
-        matchup:existing.matchup, time:existing.time||'',
-        tag:'CLINCH WATCH',
-        body:`<strong>This game matters two ways.</strong> A <strong class="gg">PHX loss + MIN win tonight clinches Minnesota a top 6 playoff seed.</strong> Also, MIN trails HOU by 3 games for the 5 seed — a Rockets loss tonight keeps that race alive.`,
-        hw:existing.hw, aw:existing.aw, home:existing.home, away:existing.away, cheerFor:'HOU', cheerAgainst:'PHX'
-      };
-    } else {
-      // PHX/HOU game not yet in list — add it
-      const phxGame = todayGames.find(g=>(g.h==='PHX'&&g.a==='HOU')||(g.h==='HOU'&&g.a==='PHX'));
-      if(phxGame) {
-        noLAL.push({
-          type:'swing', ico:'⚡',
-          matchup:`${phxGame.a} @ ${phxGame.h}`, time:phxGame.t||'',
-          tag:'CLINCH WATCH',
-          body:`<strong>This game matters two ways.</strong> A <strong class="gg">PHX loss + MIN win tonight clinches Minnesota a top 6 playoff seed.</strong> Also, MIN trails HOU by 3 games for the 5 seed — a Rockets loss tonight keeps that race alive.`,
-          hw:phxGame.hw, aw:phxGame.aw, home:phxGame.h, away:phxGame.a, cheerFor:'HOU', cheerAgainst:'PHX'
-        });
-      }
-    }
-    return noLAL.slice(0, 8);
-  }
 
   return items.slice(0, 8);
 }
