@@ -1718,7 +1718,7 @@ let CL='nba';
 // ============================================================
 // SCENARIO CHEER — CHA, ORL, PHX, GSW only
 // ============================================================
-const SCENARIO_TEAMS = new Set(['CHA','ORL','PHX','GSW']);
+const SCENARIO_TEAMS = new Set(['CHA','ORL']);
 
 function scenarioGetConf(abbr) {
   return NBA.east.findIndex(t=>t[1]===abbr)>=0 ? NBA.east : NBA.west;
@@ -1754,17 +1754,13 @@ function scenarioBuildScenarios(abbr, conf) {
   let opponents = [];
   if(abbr === 'CHA') {
     opponents = [
-      {abbr:'TOR',gameMode:'g1',sublabel:'7/8 Game'},
       {abbr:'PHI',gameMode:'g1',sublabel:'7/8 Game'},
       {abbr:'ORL',gameMode:'g1',sublabel:'7/8 Game'},
-      {abbr:'MIA',gameMode:'g1',sublabel:'7/8 Game'},
     ];
   } else if(abbr === 'ORL') {
     opponents = [
-      {abbr:'TOR',gameMode:'g1',sublabel:'7/8 Game'},
       {abbr:'PHI',gameMode:'g1',sublabel:'7/8 Game'},
       {abbr:'CHA',gameMode:'g1',sublabel:'7/8 Game'},
-      {abbr:'MIA',gameMode:'g1',sublabel:'7/8 Game'},
     ];
   } else if(abbr === 'PHX') {
     opponents = [
@@ -2038,7 +2034,7 @@ function pick(abbr) {
 
   const today = league==='nba'?NBA.today:league==='nhl'?NHL.today:WNBA.today;
   const yesterday = league==='nba'?(DATA.nba?.yesterday||[]):league==='nhl'?(DATA.nhl?.yesterday||[]):[];
-  const cheerItems = getCheerItems(abbr,conf,rank,today,league);
+  const cheerItems = getCheerItems(abbr,conf,rank,today,league).filter(item => (abbr!=='MIN' || league!=='nba' || item.type==='yourgame' || item.type==='watch') && (abbr!=='PHX' || league!=='nba' || item.type==='yourgame') && (abbr!=='GSW' || league!=='nba' || item.type==='yourgame'));
   const recapItems = getRecapItems(abbr,conf,rank,yesterday,league);
   const story = getStory(found,rank,conf,odds,league);
   const urgColors={'green':'#a1ffc2','amber':'#dae3f4','red':'#ff716b','dim':'#73757d'};
