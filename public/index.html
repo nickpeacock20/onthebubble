@@ -2106,6 +2106,28 @@ function pick(abbr) {
     </div>
   </section>
 
+  <!-- TIEBREAKER BANNER -->
+  ${(()=>{
+    const tbData = {
+      TOR: { wins: ['ATL','CHA','ORL'], loses: ['PHI'] },
+      ATL: { wins: ['PHI','ORL'], loses: ['TOR','CHA'] },
+      ORL: { wins: [], loses: ['ATL','TOR','PHI','CHA'] },
+      PHI: { wins: ['TOR','CHA','ORL'], loses: ['ATL','MIA'] },
+      CHA: { wins: ['ATL','ORL'], loses: ['TOR','PHI','MIA'] },
+      MIA: { wins: ['CHA','PHI'], loses: [] },
+    };
+    const tb = tbData[abbr];
+    if(!tb || league!=='nba') return '';
+    const winsStr = tb.wins.length ? tb.wins.join(', ') : null;
+    const losesStr = tb.loses.length ? tb.loses.join(', ') : null;
+    return `<div class="rounded-xl px-5 py-3 mb-0 flex flex-wrap items-center gap-3" style="background:#1c2028;border:1px solid rgba(255,255,255,0.08)">
+      <span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant font-bold flex-shrink-0">Tiebreakers</span>
+      ${winsStr ? `<span class="font-label text-xs"><span class="text-on-surface-variant">Wins vs</span> <span class="font-bold" style="color:#a1ffc2">${winsStr}</span></span>` : ''}
+      ${winsStr && losesStr ? `<span class="text-on-surface-variant text-xs">·</span>` : ''}
+      ${losesStr ? `<span class="font-label text-xs"><span class="text-on-surface-variant">Loses vs</span> <span class="font-bold" style="color:#ff716b">${losesStr}</span></span>` : ''}
+    </div>`;
+  })()}
+
   <!-- BENTO GRID -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
