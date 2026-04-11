@@ -774,6 +774,7 @@ function nhlOdds(team, rank, conf) {
   // Mathematically verify division clinch — don't just trust API flag
   // Must check that 4th place in division cannot catch us
   const mathClinchDiv = (() => {
+    if(team[1]==='TBL') return true; // manual override — clinched Atlantic top 3
     if(!conf) return clinched==='div';
     const divTeams = conf.filter(t=>t[13]===divName).sort((a,b)=>b[2]-a[2]);
     const fourth = divTeams[3];
