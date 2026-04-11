@@ -890,25 +890,8 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     // Elimination check
     if(t[9]) return;
 
-    // PIT override — always show these 4 teams if they have a game, no filtering
-    if(teamAbbr === 'PIT' && league === 'nhl') {
-      const pitRivals = ['PHI','CBJ','NYI','WSH'];
-      if(!pitRivals.includes(t[1])) return;
-      const g = todayGames.find(g2 => (g2.h===t[1]||g2.a===t[1]) && g2.h!==teamAbbr && g2.a!==teamAbbr);
-      if(!g) return;
-      const opp = g.h===t[1] ? g.a : g.h;
-      const oppWP = g.h===t[1] ? g.aw : g.hw;
-      const gap = myW - t[2];
-      const units = gap===1?'pt':'pts';
-      items.push({
-        type:'cheeragainst', ico:'🛡️',
-        matchup:`${g.a} @ ${g.h}`, time:g.t,
-        tag:`PROTECT YOUR SPOT`,
-        body:`<strong>${t[1]}</strong> is ${Math.abs(gap)} ${units} behind you. <strong class="gg">Root for ${opp}</strong> to keep them there. They have a <strong>${oppWP.toFixed(0)}%</strong> chance.`,
-        hw:g.hw, aw:g.aw, home:g.h, away:g.a, cheerFor:opp, cheerAgainst:t[1]
-      });
-      return;
-    }
+    // PIT override — locked into Metro #2, nothing to cheer for
+    if(teamAbbr === 'PIT' && league === 'nhl') return;
 
     // NBA: skip teams that can't reach play-in or can't affect us
     if(league==='nba') {
@@ -2047,6 +2030,15 @@ function pick(abbr) {
   const today = league==='nba'?NBA.today:league==='nhl'?NHL.today:WNBA.today;
   const yesterday = league==='nba'?(DATA.nba?.yesterday||[]):league==='nhl'?(DATA.nhl?.yesterday||[]):[];
   const cheerItems = getCheerItems(abbr,conf,rank,today,league).filter(item => (abbr!=='MIN' || league!=='nba' || item.type==='yourgame' || item.type==='watch') && (abbr!=='PHX' || league!=='nba' || item.type==='yourgame') && (abbr!=='GSW' || league!=='nba' || item.type==='yourgame'));
+  if(abbr==='PIT' && league==='nhl') {
+    const pitGame = cheerItems.find(i=>i.type==='yourgame');
+    const locked = {type:'watch', ico:'🔒', matchup:'LOCKED IN', time:'', tag:'LOCKED IN',
+      body:`The Penguins are locked into the Metropolitan Division 2 seed.`,
+      hw:50, aw:50, home:'', away:'', cheerFor:null, cheerAgainst:null};
+    cheerItems.length = 0;
+    if(pitGame) cheerItems.push(pitGame);
+    cheerItems.push(locked);
+  }
   const recapItems = getRecapItems(abbr,conf,rank,yesterday,league);
   const story = getStory(found,rank,conf,odds,league);
   const urgColors={'green':'#a1ffc2','amber':'#dae3f4','red':'#ff716b','dim':'#73757d'};
