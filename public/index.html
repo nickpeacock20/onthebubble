@@ -890,6 +890,8 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     // Elimination check
     if(t[9]) return;
 
+    // EDM override — UTA/CAR not relevant
+    if(teamAbbr === 'EDM' && league === 'nhl' && (t[1]==='UTA'||t[1]==='CAR')) return;
     // PIT override — locked into Metro #2, nothing to cheer for
     if(teamAbbr === 'PIT' && league === 'nhl') return;
 
