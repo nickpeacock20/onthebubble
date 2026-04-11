@@ -935,7 +935,8 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       const myThird = myDivTeams[2];
       const myPts = myTeamData[2];
       const myRem2 = myTeamData[6];
-      const canReachDivTop3 = myDivRank <= 3 || (myThird && myPts + myRem2*2 >= myThird[2]);
+      const forceWildCard = league==='nhl' && ['BOS','OTT','PHI','CBJ','NYI','WSH','NJD','DET','EDM','ANA','UTA','VGK','NSH','LAK','SJS','WPG','STL','SEA','CGY'].includes(teamAbbr);
+      const canReachDivTop3 = !forceWildCard && (myDivRank <= 3 || (myThird && myPts + myRem2*2 >= myThird[2]));
       const clinched3 = (myDivRank <= 3 && myTeamData[10] && (myTeamData[10]==='div'||myTeamData[10]==='playoff')) || (league==='nhl' && ['TBL','BUF','MTL','CAR','COL','DAL','MIN','PIT'].includes(teamAbbr));
 
       const tClinched3 = (tDivRank <= 3 && t[10] && (t[10]==='div'||t[10]==='playoff')) || (league==='nhl' && ['TBL','BUF','MTL','CAR','COL','DAL','MIN','PIT'].includes(t[1]));
