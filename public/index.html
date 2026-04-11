@@ -938,13 +938,16 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       const canReachDivTop3 = myDivRank <= 3 || (myThird && myPts + myRem2*2 >= myThird[2]);
       const clinched3 = (myDivRank <= 3 && myTeamData[10] && (myTeamData[10]==='div'||myTeamData[10]==='playoff')) || (league==='nhl' && ['TBL','BUF','MTL','CAR','COL','DAL','MIN','PIT'].includes(teamAbbr));
 
+      const tClinched3 = (tDivRank <= 3 && t[10] && (t[10]==='div'||t[10]==='playoff')) || (league==='nhl' && ['TBL','BUF','MTL','CAR','COL','DAL','MIN','PIT'].includes(t[1]));
+
       // If clinched into div top 3, only care about same-div top 3 rivals (seeding race)
       if(clinched3) {
-        if(myDiv !== tDiv) return; // ignore all other divisions
-        if(tDivRank > 3) return;   // ignore teams outside div top 3
+        if(myDiv !== tDiv) return;
+        if(tDivRank > 3) return;
       } else if(!canReachDivTop3) {
-        // Locked into wild card — only care about other wild card teams (not div top 3 from other divs)
+        // Locked into wild card — skip div top 3 teams from other divs AND clinched teams
         if(tDivRank <= 3 && myDiv !== tDiv) return;
+        if(tClinched3) return;
       }
     }
 
