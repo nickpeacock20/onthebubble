@@ -936,7 +936,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       const myPts = myTeamData[2];
       const myRem2 = myTeamData[6];
       const canReachDivTop3 = myDivRank <= 3 || (myThird && myPts + myRem2*2 >= myThird[2]);
-      const clinched3 = myDivRank <= 3 && myTeamData[10] && (myTeamData[10]==='div'||myTeamData[10]==='playoff');
+      const clinched3 = (myDivRank <= 3 && myTeamData[10] && (myTeamData[10]==='div'||myTeamData[10]==='playoff')) || (league==='nhl' && ['TBL','BUF','MTL','CAR','COL','DAL','MIN','PIT'].includes(teamAbbr));
 
       // If clinched into div top 3, only care about same-div top 3 rivals (seeding race)
       if(clinched3) {
