@@ -945,6 +945,8 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       if(clinched3) {
         if(myDiv !== tDiv) return;
         if(tDivRank > 3) return;
+        // Only show if they can actually reach my points (seeding race)
+        if(t[2] + t[6]*2 < myPts) return;
       } else if(!canReachDivTop3) {
         // Locked into wild card — skip div top 3 teams from other divs AND clinched teams
         if(tDivRank <= 3 && myDiv !== tDiv) return;
