@@ -784,7 +784,7 @@ function nhlOdds(team, rank, conf) {
 
   // Mathematically verify playoff clinch (top 3 div OR wild card)
   const mathClinchPlayoff = (() => {
-    if(team[1]==='BOS'||team[1]==='OTT') return true; // clinched wild card
+    if(['BOS','OTT','UTA'].includes(team[1])) return true; // clinched wild card
     if(!conf) return clinched==='playoff';
     // Check if even the 9th team in conference can't catch us
     const confSorted = [...conf].sort((a,b)=>b[2]-a[2]);
@@ -797,12 +797,17 @@ function nhlOdds(team, rank, conf) {
   if(mathClinchPlayoff) return {mp:100,div:clinched==='div'?100:50,wc:50};
 
   // Monte Carlo may say 100% but if not mathematically clinched, cap at 99%
+  // Also never show 0% unless mathematically eliminated
   if(MC_ODDS.nhl?.[team[1]]) {
     const mc = MC_ODDS.nhl[team[1]];
     const cappedDiv = mathClinchDiv ? mc.div : Math.min(99, mc.div);
     const cappedMp  = mathClinchPlayoff ? mc.mp : Math.min(99, mc.mp);
+    // If not mathematically eliminated, floor at 1%
+    const confSorted = conf ? [...conf].sort((a,b)=>b[2]-a[2]) : null;
+    const ninth = confSorted ? confSorted[8] : null;
+    const mathElim = ninth && (pts + rem*2 < ninth[2]);
     return {
-      mp:  cappedMp,
+      mp:  mathElim ? 0 : Math.max(cappedMp, 1),
       div: cappedDiv,
       wc:  Math.min(99, mc.wc),
     };
@@ -2196,6 +2201,7 @@ function pick(abbr) {
           <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Division Top 3</p>
           <div class="text-4xl sm:text-5xl font-headline font-bold text-on-surface mb-3">${(()=>{
             if(abbr==='TBL') return 100;
+            if(['BOS','OTT','UTA','NYI','WSH','DET','CBJ'].includes(abbr)) { const divT2=conf.filter(t=>t[13]===found[13]).sort((a,b)=>b[2]-a[2]); const t3=divT2[2]; if(t3 && found[2]+found[6]*2 < t3[2]) return 0; }
             if(abbr==='BOS'||abbr==='OTT') return 0;
             const divT=conf.filter(t=>t[13]===found[13]).sort((a,b)=>b[2]-a[2]);
             const f3=divT[2]; const f4=divT[3];
