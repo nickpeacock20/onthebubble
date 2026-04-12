@@ -2209,7 +2209,9 @@ function pick(abbr) {
             if(f3 && found[2]+found[6]*2 < f3[2]) return 0;
             // Mathematically clinched div top 3
             if(!f4||found[2]>f4[2]+f4[6]*2) return odds.div;
-            return Math.min(99,odds.div);
+            // If div top 3 is their only path (no wild card chance), match mp
+            if(odds.wc===0) return Math.max(1, Math.min(99, odds.mp));
+            return Math.max(1, Math.min(99,odds.div));
           })()}%</div>
           <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-1000 bg-on-surface/40" style="width:0%" id="pbar2"></div>
