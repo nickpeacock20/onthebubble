@@ -1725,7 +1725,7 @@ let CL='nba';
 // ============================================================
 // SCENARIO CHEER — CHA, ORL, PHX, GSW only
 // ============================================================
-const SCENARIO_TEAMS = new Set(['CHA','ORL']);
+const SCENARIO_TEAMS = new Set([]);
 
 function scenarioGetConf(abbr) {
   return NBA.east.findIndex(t=>t[1]===abbr)>=0 ? NBA.east : NBA.west;
@@ -2031,7 +2031,7 @@ function pick(abbr) {
       const mathNoTop6 = rank > 6 && team6 && (w + rem < team6[2]);
       const gbBack = team6 ? ((team6[2] - w) + (l - team6[3])) / 2 : 0;
       const forceZeroAuto = abbr === 'MIA';
-      autoDisplay = (mathNoTop6 || forceZeroAuto) ? 0 : Math.min(99,Math.max(1,odds.auto));
+      autoDisplay = (mathNoTop6 || forceZeroAuto) ? 0 : abbr==='TOR' ? Math.min(99,Math.max(1,odds.mp)) : Math.min(99,Math.max(1,odds.auto));
       piDisplay = Math.min(99,Math.max(1,odds.pi));
       mpDisplay = Math.min(99,Math.max(1,odds.mp));
     }
@@ -2348,7 +2348,7 @@ function pick(abbr) {
     wi.style.color = winClinchesTop6 ? '#a1ffc2' : '';
     wi.style.fontSize = winClinchesTop6 ? '10px' : '';
   } else if(league==='nhl' && wi) {
-    if(abbr === 'BOS' || abbr === 'EDM' || abbr === 'VGK') {
+    if(abbr === 'BOS' || abbr === 'EDM' || abbr === 'VGK' || abbr === 'TOR') {
       wi.textContent = '100% — Clinched 🎉';
       wi.style.color = '#a1ffc2';
       wi.style.fontSize = '10px';
