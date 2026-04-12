@@ -868,7 +868,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       type:'yourgame', ico: gameIco,
       matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
       tag:'YOUR GAME',
-      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='TOR'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='EDM'?' One point today clinches a playoff spot.':teamAbbr==='VGK'?' A win today clinches a playoff spot.':teamAbbr==='DAL'?' A win today clinches the No. 2 seed in the Central Division.':''}`,
+      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='TOR'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='EDM'?' One point today clinches a playoff spot.':teamAbbr==='VGK'?' A win today clinches a playoff spot.':teamAbbr==='DAL'?' A win today clinches the No. 2 seed in the Central Division.':teamAbbr==='CHA'?' A win secures home court in the 9/10 Play-in game.':''}`,
       hw:myGame.hw, aw:myGame.aw, home:myGame.h, away:myGame.a, cheerFor:null, cheerAgainst:null
     });
   } else {
