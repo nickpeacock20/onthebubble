@@ -2022,9 +2022,10 @@ function pick(abbr) {
     const stuckInPlayIn = rank >= 7 && rank <= 10 && team6 && (w + rem < team6[2]);
     const spVal = PLAYIN_SP[abbr] ?? odds.sp;
     let autoDisplay, piDisplay, mpDisplay;
+    const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL']);
     if (hardElim) {
       autoDisplay=0; piDisplay=0; mpDisplay=0;
-    } else if (clinchTop6) {
+    } else if (clinchTop6 || clinchedTop6Teams.has(abbr)) {
       autoDisplay=100; piDisplay=0; mpDisplay=100;
     } else {
       const mathNoTop6 = rank > 6 && team6 && (w + rem < team6[2]);
