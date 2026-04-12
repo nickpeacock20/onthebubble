@@ -2194,7 +2194,17 @@ function pick(abbr) {
         ${league==='nhl'?`
         <div class="bg-surface-container-high p-5 rounded-xl">
           <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Division Top 3</p>
-          <div class="text-4xl sm:text-5xl font-headline font-bold text-on-surface mb-3">${(()=>{if(abbr==='TBL')return 100;if(abbr==='BOS'||abbr==='OTT')return 0;const divT=conf.filter(t=>t[13]===found[13]).sort((a,b)=>b[2]-a[2]);const f=divT[3];return(!f||found[2]>f[2]+f[6]*2)?odds.div:Math.min(99,odds.div);})()}%</div>
+          <div class="text-4xl sm:text-5xl font-headline font-bold text-on-surface mb-3">${(()=>{
+            if(abbr==='TBL') return 100;
+            if(abbr==='BOS'||abbr==='OTT') return 0;
+            const divT=conf.filter(t=>t[13]===found[13]).sort((a,b)=>b[2]-a[2]);
+            const f3=divT[2]; const f4=divT[3];
+            // Mathematically eliminated from div top 3
+            if(f3 && found[2]+found[6]*2 < f3[2]) return 0;
+            // Mathematically clinched div top 3
+            if(!f4||found[2]>f4[2]+f4[6]*2) return odds.div;
+            return Math.min(99,odds.div);
+          })()}%</div>
           <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-1000 bg-on-surface/40" style="width:0%" id="pbar2"></div>
           </div>
