@@ -2042,7 +2042,7 @@ function pick(abbr) {
 
   const today = league==='nba'?NBA.today:league==='nhl'?NHL.today:WNBA.today;
   const yesterday = league==='nba'?(DATA.nba?.yesterday||[]):league==='nhl'?(DATA.nhl?.yesterday||[]):[];
-  const cheerItems = getCheerItems(abbr,conf,rank,today,league).filter(item => (abbr!=='MIN' || league!=='nba' || item.type==='yourgame' || item.type==='watch') && (abbr!=='PHX' || league!=='nba' || item.type==='yourgame') && (abbr!=='GSW' || league!=='nba' || item.type==='yourgame'));
+  const cheerItems = getCheerItems(abbr,conf,rank,today,league).filter(item => (abbr!=='MIN' || league!=='nba' || item.type==='yourgame' || item.type==='watch') && (abbr!=='PHX' || league!=='nba' || item.type==='yourgame') && (abbr!=='GSW' || league!=='nba' || item.type==='yourgame') && (abbr!=='CHA' || league!=='nba' || item.cheerAgainst!=='PHI') && (abbr!=='ORL' || league!=='nba' || item.cheerAgainst!=='ATL'));
   if(abbr==='PIT' && league==='nhl') {
     const pitGame = cheerItems.find(i=>i.type==='yourgame');
     const locked = {type:'watch', ico:'🔒', matchup:'LOCKED IN', time:'', tag:'LOCKED IN',
