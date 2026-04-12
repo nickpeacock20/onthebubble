@@ -784,6 +784,7 @@ function nhlOdds(team, rank, conf) {
 
   // Mathematically verify playoff clinch (top 3 div OR wild card)
   const mathClinchPlayoff = (() => {
+    if(team[1]==='BOS') return true; // clinched wild card
     if(!conf) return clinched==='playoff';
     // Check if even the 9th team in conference can't catch us
     const confSorted = [...conf].sort((a,b)=>b[2]-a[2]);
@@ -862,7 +863,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       type:'yourgame', ico: gameIco,
       matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
       tag:'YOUR GAME',
-      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='ATL'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='TOR'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='BOS'?' A win tonight clinches a playoff spot.':teamAbbr==='EDM'?' One point today clinches a playoff spot.':teamAbbr==='VGK'?' A win today clinches a playoff spot.':teamAbbr==='DAL'?' A win today clinches the No. 2 seed in the Central Division.':''}`,
+      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='ATL'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='TOR'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='BOS'?'':teamAbbr==='EDM'?' One point today clinches a playoff spot.':teamAbbr==='VGK'?' A win today clinches a playoff spot.':teamAbbr==='DAL'?' A win today clinches the No. 2 seed in the Central Division.':''}`,
       hw:myGame.hw, aw:myGame.aw, home:myGame.h, away:myGame.a, cheerFor:null, cheerAgainst:null
     });
   } else {
@@ -896,6 +897,8 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
     if(teamAbbr === 'VGK' && league === 'nhl' && ['UTA','CAR','NSH','WPG'].includes(t[1])) return;
     // PIT override — locked into Metro #2, nothing to cheer for
     if(teamAbbr === 'PIT' && league === 'nhl') return;
+    // BOS override — clinched wild card, nothing to cheer for
+    if(teamAbbr === 'BOS' && league === 'nhl') return;
 
     // NBA: skip teams that can't reach play-in or can't affect us
     if(league==='nba') {
@@ -2043,6 +2046,15 @@ function pick(abbr) {
     if(pitGame) cheerItems.push(pitGame);
     cheerItems.push(locked);
   }
+  if(abbr==='BOS' && league==='nhl') {
+    const bosGame = cheerItems.find(i=>i.type==='yourgame');
+    const locked = {type:'watch', ico:'🔒', matchup:'LOCKED IN', time:'', tag:'LOCKED IN',
+      body:`The Bruins have clinched a playoff spot as a wild card team.`,
+      hw:50, aw:50, home:'', away:'', cheerFor:null, cheerAgainst:null};
+    cheerItems.length = 0;
+    if(bosGame) cheerItems.push(bosGame);
+    cheerItems.push(locked);
+  }
   const recapItems = getRecapItems(abbr,conf,rank,yesterday,league);
   const story = getStory(found,rank,conf,odds,league);
   const urgColors={'green':'#a1ffc2','amber':'#dae3f4','red':'#ff716b','dim':'#73757d'};
@@ -2182,7 +2194,7 @@ function pick(abbr) {
         ${league==='nhl'?`
         <div class="bg-surface-container-high p-5 rounded-xl">
           <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Division Top 3</p>
-          <div class="text-4xl sm:text-5xl font-headline font-bold text-on-surface mb-3">${(()=>{if(abbr==='TBL')return 100;const divT=conf.filter(t=>t[13]===found[13]).sort((a,b)=>b[2]-a[2]);const f=divT[3];return(!f||found[2]>f[2]+f[6]*2)?odds.div:Math.min(99,odds.div);})()}%</div>
+          <div class="text-4xl sm:text-5xl font-headline font-bold text-on-surface mb-3">${(()=>{if(abbr==='TBL')return 100;if(abbr==='BOS')return 0;const divT=conf.filter(t=>t[13]===found[13]).sort((a,b)=>b[2]-a[2]);const f=divT[3];return(!f||found[2]>f[2]+f[6]*2)?odds.div:Math.min(99,odds.div);})()}%</div>
           <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-1000 bg-on-surface/40" style="width:0%" id="pbar2"></div>
           </div>
