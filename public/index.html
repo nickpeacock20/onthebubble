@@ -2409,13 +2409,14 @@ function pick(abbr) {
     const b2=document.getElementById('pbar2');
     const b3=document.getElementById('pbar3');
     const b4=document.getElementById('pbar4');
-    if(b1) b1.style.width=(league==='nba'?(d.mp??odds.mp):league==='nhl'?odds.mp:odds.mp)+'%';
+    const _fo = {PHI:80,ORL:76,CHA:24,MIA:20,PHX:84,POR:72,LAC:33,GSW:12};
+    if(b1) b1.style.width=(league==='nba'?(_fo[abbr]!==undefined?_fo[abbr]:(d.mp??odds.mp)):league==='nhl'?odds.mp:odds.mp)+'%';
     if(b2) b2.style.width=(league==='nba'?(d.auto??odds.auto):league==='nhl'?odds.div:odds.mp)+'%';
     if(b3) b3.style.width=(league==='nba'?(d.pi??odds.pi):league==='nhl'?odds.wc:0)+'%';
     if(b4) b4.style.width=(league==='nba'?(d.sp??PLAYIN_SP[found[1]]??odds.sp):0)+'%';
     // Update hero mp display
     const heroMp = document.getElementById('hero-mp');
-    if(heroMp) heroMp.textContent = (league==='nba'?(d.mp??odds.mp):odds.mp)+'%';
+    if(heroMp) heroMp.textContent = (league==='nba'? (_fo[abbr]!==undefined ? _fo[abbr] : (d.mp??odds.mp)) : odds.mp)+'%';
   },100);
 }
 
