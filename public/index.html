@@ -2003,6 +2003,7 @@ function pick(abbr) {
   const hot = (streak||'').startsWith('W')&&streakN>=3;
   const cold = (streak||'').startsWith('L')&&streakN>=3;
 
+  const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL','TOR']);
   let odds;
   if(league==='nba') odds=nbaOdds(found,rank,conf);
   else if(league==='nhl') odds=nhlOdds(found,rank,conf);
@@ -2022,7 +2023,6 @@ function pick(abbr) {
     const stuckInPlayIn = rank >= 7 && rank <= 10 && team6 && (w + rem < team6[2]);
     const spVal = PLAYIN_SP[abbr] ?? odds.sp;
     let autoDisplay, piDisplay, mpDisplay;
-    const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL','TOR']);
     if (hardElim) {
       autoDisplay=0; piDisplay=0; mpDisplay=0;
     } else if (clinchTop6 || clinchedTop6Teams.has(abbr)) {
@@ -2172,7 +2172,8 @@ function pick(abbr) {
       ${(()=>{
         if(league==='nba') {
           const isTop6 = clinchedTop6Teams.has(abbr) || clinchTop6;
-          const isPlayIn = rank >= 7 && rank <= 10 && found[10]==='pi';
+          const isPlayIn = found[10]==='pi';
+          const isElim = found[9] || (rank > 10);
           const seedLabels = {
             DET:'1 Seed · East',BOS:'2 Seed · East',NYK:'3 Seed · East',CLE:'4 Seed · East',TOR:'5 Seed · East',ATL:'6 Seed · East',
             OKC:'1 Seed · West',SAS:'2 Seed · West',DEN:'3 Seed · West',LAL:'4 Seed · West',HOU:'5 Seed · West',MIN:'6 Seed · West'
