@@ -2022,7 +2022,7 @@ function pick(abbr) {
     const stuckInPlayIn = rank >= 7 && rank <= 10 && team6 && (w + rem < team6[2]);
     const spVal = PLAYIN_SP[abbr] ?? odds.sp;
     let autoDisplay, piDisplay, mpDisplay;
-    const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL']);
+    const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL','TOR']);
     if (hardElim) {
       autoDisplay=0; piDisplay=0; mpDisplay=0;
     } else if (clinchTop6 || clinchedTop6Teams.has(abbr)) {
@@ -2169,7 +2169,46 @@ function pick(abbr) {
 
 
       <!-- PLAYOFF ODDS -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      ${(()=>{
+        if(league==='nba') {
+          const isTop6 = clinchedTop6Teams.has(abbr) || clinchTop6;
+          const isPlayIn = rank >= 7 && rank <= 10 && found[10]==='pi';
+          const seedLabels = {
+            DET:'1 Seed · East',BOS:'2 Seed · East',NYK:'3 Seed · East',CLE:'4 Seed · East',TOR:'5 Seed · East',ATL:'6 Seed · East',
+            OKC:'1 Seed · West',SAS:'2 Seed · West',DEN:'3 Seed · West',LAL:'4 Seed · West',HOU:'5 Seed · West',MIN:'6 Seed · West'
+          };
+          if(isTop6) {
+            return `<div class="rounded-xl p-8 text-center relative overflow-hidden" style="background:linear-gradient(135deg,${color}18,${color}08);border:2px solid ${color}40">
+              <div class="relative z-10">
+                <div style="font-size:48px;margin-bottom:12px">🎉</div>
+                <h2 class="font-headline font-extrabold text-3xl tracking-tight mb-2" style="color:${color}">PLAYOFF SPOT SECURED!</h2>
+                <p class="font-label text-sm uppercase tracking-widest mb-6" style="color:${color};opacity:0.7">${seedLabels[abbr]||''}</p>
+                <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto">
+                  <div class="bg-surface-container-high rounded-xl p-3">
+                    <p class="text-[9px] font-label uppercase text-on-surface-variant mb-1">Record</p>
+                    <p class="font-headline font-bold text-xl" style="color:${color}">${w}-${l}</p>
+                  </div>
+                  <div class="bg-surface-container-high rounded-xl p-3">
+                    <p class="text-[9px] font-label uppercase text-on-surface-variant mb-1">Playoff Seed</p>
+                    <p class="font-headline font-bold text-xl text-on-surface">#${rank}</p>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          }
+          // Play-in teams — show playoff odds only
+          const mpVal = PLAYIN_SP[abbr] ?? window._display?.mp ?? odds.mp;
+          return `<div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
+            <p class="text-xs font-label uppercase text-on-surface-variant mb-3">% Chance to Make Playoffs</p>
+            <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:${color}" id="hero-mp">${mpVal}%</div>
+            <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-1000" style="background:${color};width:0%" id="pbar1"></div>
+            </div>
+            <p class="text-xs text-on-surface-variant mt-3">#${rank} Seed · Play-In Tournament</p>
+          </div>`;
+        }
+        // NHL
+        return `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
           <p class="text-xs font-label uppercase text-on-surface-variant mb-3">To Make Playoffs</p>
           <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:${color}" id="hero-mp">${window._display?.mp??odds.mp}%</div>
@@ -2187,17 +2226,6 @@ function pick(abbr) {
             </div>
           </div>
         </div>
-        ${league==='nba'?`
-        <div class="bg-surface-container-high p-5 rounded-xl">
-          <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Top 6 Auto Spot</p>
-          <div class="text-4xl sm:text-5xl font-headline font-bold text-on-surface mb-3" id="hero-auto">${window._display?.auto??odds.auto}%</div>
-          <div class="w-full bg-surface-container-highest h-0.5 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-1000 bg-on-surface/40" style="width:0%" id="pbar2"></div>
-          </div>
-          <p class="text-xs text-on-surface-variant mt-3">${rank<=6?`Currently #${rank} — defending auto spot`:(()=>{const gb=((conf[5][2]-w)+(l-conf[5][3]))/2;return gb<=0?`${Math.abs(gb).toFixed(1)} GB above the line`:`${gb.toFixed(1)} GB back of auto spot`;})()}</p>
-        </div>
-        `:''}
-        ${league==='nhl'?`
         <div class="bg-surface-container-high p-5 rounded-xl">
           <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Division Top 3</p>
           <div class="text-4xl sm:text-5xl font-headline font-bold text-on-surface mb-3">${(()=>{
@@ -2219,8 +2247,8 @@ function pick(abbr) {
           </div>
           <p class="text-xs text-on-surface-variant mt-3">${found[12]<=3?`Div #${found[12]} — in division spot`:'Must climb into top 3 of division'}</p>
         </div>
-        `:''}
-      </div>
+        </div>`;
+      })()}
 
       <!-- WHO TO CHEER FOR TODAY -->
       <div class="bg-surface-container-low rounded-xl overflow-hidden">
