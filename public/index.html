@@ -2004,6 +2004,8 @@ function pick(abbr) {
   const cold = (streak||'').startsWith('L')&&streakN>=3;
 
   const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL','TOR']);
+  const _team7 = league==='nba' ? conf[6] : null;
+  const clinchTop6 = league==='nba' && rank <= 6 && (found[10] === 'auto' || (_team7 && _team7[2] + _team7[4] < w));
   let odds;
   if(league==='nba') odds=nbaOdds(found,rank,conf);
   else if(league==='nhl') odds=nhlOdds(found,rank,conf);
@@ -2195,6 +2197,14 @@ function pick(abbr) {
                   </div>
                 </div>
               </div>
+            </div>`;
+          }
+          // Eliminated teams
+          if(isElim) {
+            return `<div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
+              <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Season Record</p>
+              <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:#ff716b">${w}-${l}</div>
+              <p class="text-xs text-on-surface-variant mt-3">Eliminated from playoff contention</p>
             </div>`;
           }
           // Play-in teams — show playoff odds only
