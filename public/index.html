@@ -2210,7 +2210,8 @@ function pick(abbr) {
             </div>`;
           }
           // Play-in teams — show playoff odds only
-          const mpVal = PLAYIN_SP[abbr] ?? window._display?.mp ?? odds.mp;
+          const _finalOdds = {PHI:80,ORL:76,CHA:24,MIA:20,PHX:84,POR:72,LAC:33,GSW:12};
+          const mpVal = _finalOdds[abbr] !== undefined ? _finalOdds[abbr] : (PLAYIN_SP[abbr] || odds.mp);
           return `<div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
             <p class="text-xs font-label uppercase text-on-surface-variant mb-3">% Chance to Make Playoffs</p>
             <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:${color}" id="hero-mp">${mpVal}%</div>
