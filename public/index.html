@@ -571,6 +571,8 @@ async function fetchLiveData() {
       PLAYIN_SP[s9[1]]=Math.round(r9/PN*100);
       PLAYIN_SP[s10[1]]=Math.round(r10/PN*100);
     }
+    // Override with final play-in odds now that regular season is over
+    Object.assign(PLAYIN_SP, {PHI:80,ORL:76,CHA:24,MIA:20,PHX:84,POR:72,LAC:33,GSW:12});
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
     if (pill) pill.innerHTML = `<div class="livdot"></div><div><div class="pill-main">UPDATED ${updated.toUpperCase()}</div><div class="pill-sub">Data updates by 10 AM every morning</div></div>`;
@@ -868,7 +870,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       type:'yourgame', ico: gameIco,
       matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
       tag:'YOUR GAME',
-      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='TOR'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='EDM'?' One point today clinches a playoff spot.':teamAbbr==='VGK'?' A win today clinches a playoff spot.':teamAbbr==='DAL'?' A win today clinches the No. 2 seed in the Central Division.':teamAbbr==='CHA'?' A win secures home court in the 9/10 play-in game.':''}`,
+      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='TOR'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='EDM'?' One point today clinches a playoff spot.':teamAbbr==='VGK'?' A win today clinches a playoff spot.':teamAbbr==='CHA'?' A win secures home court in the 9/10 play-in game.':''}`,
       hw:myGame.hw, aw:myGame.aw, home:myGame.h, away:myGame.a, cheerFor:null, cheerAgainst:null
     });
   } else {
