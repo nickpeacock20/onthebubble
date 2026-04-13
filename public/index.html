@@ -2136,35 +2136,6 @@ function pick(abbr) {
     </div>
   </section>
 
-  <!-- TIEBREAKER BANNER -->
-  ${(()=>{
-    const tbData = {
-      TOR: { wins: ['ATL','CHA','ORL'], loses: ['PHI'] },
-      ATL: { wins: ['PHI','ORL'], loses: ['TOR','CHA'] },
-      ORL: { wins: [], loses: ['ATL','TOR','PHI','CHA'] },
-      PHI: { wins: ['TOR','CHA','ORL'], loses: ['ATL','MIA'] },
-      CHA: { wins: ['ATL','ORL'], loses: ['TOR','PHI','MIA'] },
-      MIA: { wins: ['CHA','PHI'], loses: [] },
-    };
-    const tb = tbData[abbr];
-    if(!tb || league!=='nba') return '';
-    const winsStr = tb.wins.length ? tb.wins.join(', ') : null;
-    const losesStr = tb.loses.length ? tb.loses.join(', ') : null;
-    return `<div class="rounded-xl px-6 py-6 mb-5" style="background:#1c2028;border:1px solid rgba(255,255,255,0.08)">
-      <p class="font-headline font-bold text-xl uppercase tracking-tight mb-5">Tiebreaker Situations</p>
-      <div class="flex flex-col sm:flex-row gap-6">
-        ${winsStr ? `<div class="flex-1">
-          <p class="font-label text-xs uppercase tracking-widest mb-2" style="color:#a1ffc2">Owns Tiebreaker vs.</p>
-          <p class="font-label text-sm font-bold" style="color:#a1ffc2">${winsStr}</p>
-        </div>` : ''}
-        ${losesStr ? `<div class="flex-1">
-          <p class="font-label text-xs uppercase tracking-widest mb-2" style="color:#ff716b">Lost Tiebreaker vs.</p>
-          <p class="font-label text-sm font-bold" style="color:#ff716b">${losesStr}</p>
-        </div>` : ''}
-      </div>
-    </div>`;
-  })()}
-
   <!-- BENTO GRID -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
