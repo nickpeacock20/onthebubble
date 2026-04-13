@@ -870,7 +870,7 @@ function getCheerItems(teamAbbr, conf, rank, todayGames, league) {
       type:'yourgame', ico: gameIco,
       matchup:`${myGame.a} @ ${myGame.h}`, time:myGame.t,
       tag:'YOUR GAME',
-      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.${teamAbbr==='OKC'?' A win clinches the No. 1 seed in the West.':teamAbbr==='TOR'?' A win tonight clinches a guaranteed top 6 playoff spot!':teamAbbr==='EDM'?'':teamAbbr==='VGK'?'':teamAbbr==='CHA'?' A win secures home court in the 9/10 play-in game.':''}`,
+      body:`Your win probability: <strong>${myWP.toFixed(0)}%</strong>. Winning tonight is the #1 priority.`,
       hw:myGame.hw, aw:myGame.aw, home:myGame.h, away:myGame.a, cheerFor:null, cheerAgainst:null
     });
   } else {
@@ -2360,14 +2360,6 @@ function pick(abbr) {
     wi.textContent = winClinchesTop6 ? '100% — CLINCHED 🎉' : winImpact+'%';
     wi.style.color = winClinchesTop6 ? '#a1ffc2' : '';
     wi.style.fontSize = winClinchesTop6 ? '10px' : '';
-  } else if(league==='nhl' && wi) {
-    if(abbr === 'BOS' || abbr === 'EDM' || abbr === 'VGK' || abbr === 'TOR') {
-      wi.textContent = '100% — Clinched 🎉';
-      wi.style.color = '#a1ffc2';
-      wi.style.fontSize = '10px';
-    } else {
-      wi.textContent = winImpact+'%';
-    }
   } else if(wi) {
     wi.textContent = winImpact+'%';
   }
