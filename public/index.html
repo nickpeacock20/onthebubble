@@ -573,6 +573,7 @@ async function fetchLiveData() {
       // Eliminated play-in teams
       PLAYIN_SP['MIA'] = 0;
       PLAYIN_SP['LAC'] = 0;
+
       // Clinched 7 seeds
       PLAYIN_SP['PHI'] = 100;
       PLAYIN_SP['POR'] = 100;
@@ -2183,6 +2184,14 @@ function pick(abbr) {
             </div>`;
           }
           // Play-in teams — show playoff odds only
+          const winOrGoHome = new Set(['ORL','CHA','PHX','GSW']);
+          if(winOrGoHome.has(abbr)) {
+            return `<div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
+              <p class="text-xs font-label uppercase text-on-surface-variant mb-3">Play-In Tournament</p>
+              <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:${color}">Win or Go Home</div>
+              <p class="text-xs text-on-surface-variant mt-3">#${rank} Seed · Game 2 Tomorrow</p>
+            </div>`;
+          }
           const mpVal = PLAYIN_SP[abbr] !== undefined && PLAYIN_SP[abbr] !== null ? PLAYIN_SP[abbr] : odds.mp;
           return `<div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
             <p class="text-xs font-label uppercase text-on-surface-variant mb-3">% Chance to Make Playoffs</p>
