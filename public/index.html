@@ -1429,10 +1429,12 @@ function renderCheer(items) {
 
 function renderBracket(conf, confName, myAbbr, league) {
   if(league==='nba') {
-    // NBA: 1v8tbd, 2v7tbd, 3v6, 4v5
+    // NBA: play-in winners known for 7 seed
+    const allConf = confName==='Eastern' ? NBA.east : NBA.west;
+    const seed7team = confName==='Eastern' ? allConf.find(t=>t[1]==='PHI') : allConf.find(t=>t[1]==='POR');
     const pairs = [
       [{s:1,t:conf[0]},{s:'8*',tbd:true}],
-      [{s:2,t:conf[1]},{s:'7*',tbd:true}],
+      [{s:2,t:conf[1]},{s:'7*',t:seed7team,tbd:false}],
       [{s:3,t:conf[2]},{s:6,t:conf[5]}],
       [{s:4,t:conf[3]},{s:5,t:conf[4]}],
     ];
