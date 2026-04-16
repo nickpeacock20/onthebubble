@@ -570,9 +570,14 @@ async function fetchLiveData() {
       PLAYIN_SP[s8[1]]=Math.round(r8/PN*100);
       PLAYIN_SP[s9[1]]=Math.round(r9/PN*100);
       PLAYIN_SP[s10[1]]=Math.round(r10/PN*100);
+      // Eliminated play-in teams
+      PLAYIN_SP['MIA'] = 0;
+      PLAYIN_SP['LAC'] = 0;
+      // Clinched 7 seeds
+      PLAYIN_SP['PHI'] = 100;
+      PLAYIN_SP['POR'] = 100;
     }
-    // Override with final play-in odds now that regular season is over
-    Object.assign(PLAYIN_SP, {PHI:80,ORL:76,CHA:24,MIA:20,PHX:84,POR:72,LAC:33,GSW:12});
+
 
     const updated = new Date(data.updatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York'});
     if (pill) pill.innerHTML = `<div class="livdot"></div><div><div class="pill-main">UPDATED ${updated.toUpperCase()}</div><div class="pill-sub">Data updates by 10 AM every morning</div></div>`;
@@ -2000,7 +2005,7 @@ function pick(abbr) {
   const hot = (streak||'').startsWith('W')&&streakN>=3;
   const cold = (streak||'').startsWith('L')&&streakN>=3;
 
-  const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL','TOR']);
+  const clinchedTop6Teams = new Set(['OKC','SAS','DEN','LAL','HOU','MIN','DET','BOS','NYK','CLE','ATL','TOR','PHI','POR']);
   const _team7 = league==='nba' ? conf[6] : null;
   const clinchTop6 = league==='nba' && rank <= 6 && (found[10] === 'auto' || (_team7 && _team7[2] + _team7[4] < w));
   let odds;
@@ -2145,8 +2150,8 @@ function pick(abbr) {
           const isPlayIn = found[10]==='pi';
           const isElim = found[9] || (rank > 10);
           const seedLabels = {
-            DET:'1 Seed · East',BOS:'2 Seed · East',NYK:'3 Seed · East',CLE:'4 Seed · East',TOR:'5 Seed · East',ATL:'6 Seed · East',
-            OKC:'1 Seed · West',SAS:'2 Seed · West',DEN:'3 Seed · West',LAL:'4 Seed · West',HOU:'5 Seed · West',MIN:'6 Seed · West'
+            DET:'1 Seed · East',BOS:'2 Seed · East',NYK:'3 Seed · East',CLE:'4 Seed · East',TOR:'5 Seed · East',ATL:'6 Seed · East',PHI:'7 Seed · East',
+            OKC:'1 Seed · West',SAS:'2 Seed · West',DEN:'3 Seed · West',LAL:'4 Seed · West',HOU:'5 Seed · West',MIN:'6 Seed · West',POR:'7 Seed · West'
           };
           if(isTop6) {
             return `<div class="rounded-xl p-8 text-center relative overflow-hidden" style="background:linear-gradient(135deg,${color}18,${color}08);border:2px solid ${color}40">
@@ -2176,8 +2181,7 @@ function pick(abbr) {
             </div>`;
           }
           // Play-in teams — show playoff odds only
-          const _finalOdds = {PHI:80,ORL:76,CHA:24,MIA:20,PHX:84,POR:72,LAC:33,GSW:12};
-          const mpVal = _finalOdds[abbr] !== undefined ? _finalOdds[abbr] : (PLAYIN_SP[abbr] || odds.mp);
+          const mpVal = PLAYIN_SP[abbr] !== undefined && PLAYIN_SP[abbr] !== null ? PLAYIN_SP[abbr] : odds.mp;
           return `<div class="bg-surface-container-high p-5 rounded-xl border-t-2" style="border-top-color:${color}20">
             <p class="text-xs font-label uppercase text-on-surface-variant mb-3">% Chance to Make Playoffs</p>
             <div class="text-4xl sm:text-5xl font-headline font-bold mb-3" style="color:${color}" id="hero-mp">${mpVal}%</div>
@@ -2367,14 +2371,13 @@ function pick(abbr) {
     const b2=document.getElementById('pbar2');
     const b3=document.getElementById('pbar3');
     const b4=document.getElementById('pbar4');
-    const _fo = {PHI:80,ORL:76,CHA:24,MIA:20,PHX:84,POR:72,LAC:33,GSW:12};
-    if(b1) b1.style.width=(league==='nba'?(_fo[abbr]!==undefined?_fo[abbr]:(d.mp??odds.mp)):league==='nhl'?odds.mp:odds.mp)+'%';
+    if(b1) b1.style.width=(league==='nba'?(PLAYIN_SP[abbr]!=null&&PLAYIN_SP[abbr]!==undefined?PLAYIN_SP[abbr]:(d.mp??odds.mp)):league==='nhl'?odds.mp:odds.mp)+'%';
     if(b2) b2.style.width=(league==='nba'?(d.auto??odds.auto):league==='nhl'?odds.div:odds.mp)+'%';
     if(b3) b3.style.width=(league==='nba'?(d.pi??odds.pi):league==='nhl'?odds.wc:0)+'%';
     if(b4) b4.style.width=(league==='nba'?(d.sp??PLAYIN_SP[found[1]]??odds.sp):0)+'%';
     // Update hero mp display
     const heroMp = document.getElementById('hero-mp');
-    if(heroMp) heroMp.textContent = (league==='nba'? (_fo[abbr]!==undefined ? _fo[abbr] : (d.mp??odds.mp)) : odds.mp)+'%';
+    if(heroMp) heroMp.textContent = (league==='nba'?(PLAYIN_SP[abbr]!=null&&PLAYIN_SP[abbr]!==undefined?PLAYIN_SP[abbr]:(d.mp??odds.mp)):odds.mp)+'%';
   },100);
 }
 
