@@ -244,9 +244,11 @@ body { background-color: #0b0e14; color: #ecedf6; font-family: 'Inter', sans-ser
     <nav class="hidden md:flex items-center gap-8 font-headline font-medium tracking-tight">
       <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold active-league" onclick="switchLeague('nba')" id="ltab-nba">NBA</button>
       <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold" onclick="switchLeague('nhl')" id="ltab-nhl">NHL</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" id="ltab-wnba">WNBA</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" id="ltab-mlb">MLB</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" id="ltab-nfl">NFL</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('wnba')" id="ltab-wnba">WNBA</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('mlb')" id="ltab-mlb">MLB</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('nfl')" id="ltab-nfl">NFL</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('cfb')" id="ltab-cfb">CFB</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('cbb')" id="ltab-cbb">CBB</button>
     </nav>
     <div class="livepill flex items-center gap-2 font-label text-[9px] text-on-surface-variant">
       <div class="livdot w-1.5 h-1.5 rounded-full bg-primary-dim" style="animation:blink 2s ease-in-out infinite"></div>
@@ -257,9 +259,11 @@ body { background-color: #0b0e14; color: #ecedf6; font-family: 'Inter', sans-ser
   <div class="md:hidden flex gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide">
     <button class="ltab active flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest bg-primary text-on-primary-fixed" onclick="switchLeague('nba')">NBA</button>
     <button class="ltab flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-high" onclick="switchLeague('nhl')">NHL</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30">WNBA</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30">MLB</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30">NFL</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('wnba')">WNBA</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('mlb')">MLB</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('nfl')">NFL</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('cfb')">CFB</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('cbb')">CBB</button>
   </div>
 </header>
 
@@ -2468,10 +2472,30 @@ function switchLeague(lg) {
 
   // Coming soon leagues
   const comingSoon = {
-    wnba: { ico:'🏀', title:'WNBA', msg:'Stats coming after July 19th All-Star Break', color:'#ce93d8' },
-    mlb:  { ico:'⚾', title:'MLB',  msg:'Stats coming after July 14th All-Star Break', color:'#dae3f4' },
-    nfl:  { ico:'🏈', title:'NFL',  msg:'Stats coming after Week 9',                   color:'#a1ffc2' },
+    wnba: { ico:'🏀', title:'WNBA', msg:'The WNBA playoff tracker will automatically turn on after the All-Star Break in July, when the playoff race gets interesting.', color:'#ce93d8' },
+    mlb:  { ico:'⚾', title:'MLB',  msg:'The MLB playoff tracker will automatically turn on after the All-Star Break in July, when the pennant races heat up.', color:'#dae3f4' },
+    nfl:  { ico:'🏈', title:'NFL',  msg:'The NFL playoff tracker will automatically turn on after Week 7, when the playoff picture starts to take shape.', color:'#a1ffc2' },
+    cfb:  { ico:'🏈', title:'CFB',  msg:'The College Football playoff tracker will automatically turn on in Week 1 of the season.', color:'#f4a460' },
+    cbb:  { ico:'🏀', title:'CBB',  msg:'The College Basketball playoff tracker will automatically turn on in early January when conference play begins and the bracket race starts.', color:'#87ceeb' },
   };
+
+  const concluded = {
+    nba: { ico:'🏀', title:'NBA', msg:'The 2024-25 NBA regular season and play-in tournament have concluded. Thank you for using On The Bubble this season — the playoff tracker will automatically return for the 2025-26 season.', color:'#a1ffc2' },
+    nhl: { ico:'🏒', title:'NHL', msg:'The 2024-25 NHL regular season has concluded. Thank you for using On The Bubble this season — the playoff tracker will automatically return for the 2025-26 season.', color:'#a1ffc2' },
+  };
+
+  if(concluded[lg]) {
+    const { ico, title, msg, color } = concluded[lg];
+    document.getElementById('app').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+        <div style="text-align:center;max-width:480px;padding:40px 24px">
+          <div style="font-size:64px;margin-bottom:20px">${ico}</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;color:#ecedf6;margin-bottom:12px">${title} Season Concluded</div>
+          <div style="font-family:'Manrope',sans-serif;font-size:13px;color:#a9abb3;background:#1c2028;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px 20px;margin-bottom:16px;line-height:1.7">${msg}</div>
+        </div>
+      </div>`;
+    return;
+  }
 
   if(comingSoon[lg]) {
     const { ico, title, msg, color } = comingSoon[lg];
@@ -2488,6 +2512,19 @@ function switchLeague(lg) {
     return;
   }
 
+  if(concluded[lg]) {
+    const { ico, title, msg, color } = concluded[lg];
+    document.getElementById('tsel').innerHTML = `<option value="">— Season concluded —</option>`;
+    document.getElementById('app').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+        <div style="text-align:center;max-width:480px;padding:40px 24px">
+          <div style="font-size:64px;margin-bottom:20px">${ico}</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;color:#ecedf6;margin-bottom:12px">${title} Season Concluded</div>
+          <div style="font-family:'Manrope',sans-serif;font-size:13px;color:#a9abb3;background:#1c2028;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px 20px;line-height:1.7">${msg}</div>
+        </div>
+      </div>`;
+    return;
+  }
   buildSel();
   document.getElementById('app').innerHTML = `<div class="empty">
     <div class="eico">${lg==='nba'?'🏀':'🏒'}</div>
@@ -2519,7 +2556,7 @@ function buildSel() {
 // 1. Render immediately with fallback hardcoded data
 // 2. Fetch live data from backend — re-renders when ready
 buildSel();
-setTimeout(()=>{ document.getElementById('tsel').value='MIA'; pick('MIA'); }, 150);
+switchLeague('nba');
 fetchLiveData();
 
 </script>
