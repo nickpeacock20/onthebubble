@@ -244,11 +244,11 @@ body { background-color: #0b0e14; color: #ecedf6; font-family: 'Inter', sans-ser
     <nav class="hidden md:flex items-center gap-8 font-headline font-medium tracking-tight">
       <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold active-league" onclick="switchLeague('nba')" id="ltab-nba">NBA</button>
       <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold" onclick="switchLeague('nhl')" id="ltab-nhl">NHL</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('wnba')" id="ltab-wnba">WNBA</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('mlb')" id="ltab-mlb">MLB</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('nfl')" id="ltab-nfl">NFL</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('cfb')" id="ltab-cfb">CFB</button>
-      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold opacity-30 cursor-not-allowed" onclick="switchLeague('cbb')" id="ltab-cbb">CBB</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold" onclick="switchLeague('wnba')" id="ltab-wnba">WNBA</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold" onclick="switchLeague('mlb')" id="ltab-mlb">MLB</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold" onclick="switchLeague('nfl')" id="ltab-nfl">NFL</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold" onclick="switchLeague('cfb')" id="ltab-cfb">CFB</button>
+      <button class="ltab-top text-on-surface-variant hover:text-primary transition-colors duration-200 text-sm font-semibold" onclick="switchLeague('cbb')" id="ltab-cbb">CBB</button>
     </nav>
     <div class="livepill flex items-center gap-2 font-label text-[9px] text-on-surface-variant">
       <div class="livdot w-1.5 h-1.5 rounded-full bg-primary-dim" style="animation:blink 2s ease-in-out infinite"></div>
@@ -259,11 +259,11 @@ body { background-color: #0b0e14; color: #ecedf6; font-family: 'Inter', sans-ser
   <div class="md:hidden flex gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide">
     <button class="ltab active flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest bg-primary text-on-primary-fixed" onclick="switchLeague('nba')">NBA</button>
     <button class="ltab flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-high" onclick="switchLeague('nhl')">NHL</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('wnba')">WNBA</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('mlb')">MLB</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('nfl')">NFL</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('cfb')">CFB</button>
-    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant/30 bg-surface-container-high opacity-30" onclick="switchLeague('cbb')">CBB</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-high" onclick="switchLeague('wnba')">WNBA</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-high" onclick="switchLeague('mlb')">MLB</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-high" onclick="switchLeague('nfl')">NFL</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-high" onclick="switchLeague('cfb')">CFB</button>
+    <button class="ltab soon flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-high" onclick="switchLeague('cbb')">CBB</button>
   </div>
 </header>
 
@@ -595,7 +595,7 @@ async function fetchLiveData() {
   const sel = document.getElementById('tsel');
   buildSel();
   if (sel?.value) pick(sel.value);
-  else setTimeout(()=>{ sel.value='MIA'; pick('MIA'); }, 150);
+  // Don't auto-load a team — seasons are concluded
 }
 
 
@@ -2480,8 +2480,8 @@ function switchLeague(lg) {
   };
 
   const concluded = {
-    nba: { ico:'🏀', title:'NBA', msg:'The 2024-25 NBA regular season and play-in tournament have concluded. Thank you for using On The Bubble this season — the playoff tracker will automatically return for the 2025-26 season.', color:'#a1ffc2' },
-    nhl: { ico:'🏒', title:'NHL', msg:'The 2024-25 NHL regular season has concluded. Thank you for using On The Bubble this season — the playoff tracker will automatically return for the 2025-26 season.', color:'#a1ffc2' },
+    nba: { ico:'🏀', title:'NBA', msg:'The 2025-26 NBA regular season and play-in tournament have concluded. Thank you for using On The Bubble this season — the playoff tracker will automatically return for the 2026-27 season.', color:'#a1ffc2' },
+    nhl: { ico:'🏒', title:'NHL', msg:'The 2025-26 NHL regular season has concluded. Thank you for using On The Bubble this season — the playoff tracker will automatically return for the 2026-27 season.', color:'#a1ffc2' },
   };
 
   if(concluded[lg]) {
